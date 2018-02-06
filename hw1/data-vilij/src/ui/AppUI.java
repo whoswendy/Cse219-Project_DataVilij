@@ -1,24 +1,20 @@
 package ui;
 
 import actions.AppActions;
-import javafx.event.ActionEvent;
+import dataprocessors.AppData;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import vilij.components.DataComponent;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Stack;
 
 import static vilij.settings.PropertyTypes.*;
 import static vilij.settings.PropertyTypes.EXIT_TOOLTIP;
@@ -83,10 +79,7 @@ public final class AppUI extends UITemplate {
     @Override
     public void clear() {
         // TODO for homework 1
-        if(!chart.getData().isEmpty()){
-            chart.getData().removeAll();
-
-        }
+        chart.getData().clear();;
 
     }
 
@@ -100,14 +93,8 @@ public final class AppUI extends UITemplate {
         NumberAxis yAxis = new NumberAxis(0,10,1);
         yAxis.setLabel("Y Values");
 
-        XYChart.Series series1 = new XYChart.Series();
-        series1.setName("Option 1");
-        series1.getData().add(new XYChart.Data(4.2, 3.2));
-        series1.getData().add(new XYChart.Data(2.8, 3.6));
 
         chart = new ScatterChart<>(xAxis,yAxis);
-
-        chart.getData().addAll(series1);
 
         stackPane.getChildren().add(chart);
 
@@ -138,17 +125,13 @@ public final class AppUI extends UITemplate {
 
     private void setWorkspaceActions() {
         // TODO for homework 1
+
         displayButton.setOnAction(ActionEvent->{
-            //NEED TO FIGURE OUT HOW TO PLOT POINTS
+
             String inputData = textArea.getText();
-            if(!inputData.equals(" ")){
-                newButton.setDisable(false);
-                clear();
-                //need to fix
-            }
-//            for(String line : inputData.split("\\n")) {
-//
-//            }
+            DataComponent dataComponent= this.applicationTemplate.getDataComponent();
+            dataComponent.loadData(inputData);
+
         });
     }
 }
