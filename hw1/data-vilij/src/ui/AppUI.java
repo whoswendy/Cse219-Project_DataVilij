@@ -1,7 +1,6 @@
 package ui;
 
 import actions.AppActions;
-import dataprocessors.AppData;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
@@ -11,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import vilij.components.DataComponent;
+
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
@@ -57,6 +57,15 @@ public final class AppUI extends UITemplate {
         loadButton = setToolbarButton(loadiconPath, manager.getPropertyValue(LOAD_TOOLTIP.name()), false);
         printButton = setToolbarButton(printiconPath, manager.getPropertyValue(PRINT_TOOLTIP.name()), false);
         exitButton = setToolbarButton(exiticonPath, manager.getPropertyValue(EXIT_TOOLTIP.name()), false);
+
+//        PropertyManager manager1 = applicationTemplate.manager;
+//        String iconsPath = "/" + String.join("/",
+//                manager.getPropertyValue("GUI_ICON_RESOURCE_PATH"));
+//        String scrnshoticonPath = String.join("/", iconsPath, manager.getPropertyValue("SCREENSHOT_ICON"));
+//        System.out.println(scrnshoticonPath);
+//
+//        scrnshotButton = setToolbarButton(scrnshoticonPath, manager.getPropertyValue("SCREENSHOT_TOOLTIP"), true);
+
         toolBar = new ToolBar(newButton, saveButton, loadButton, printButton, exitButton);
     }
 
@@ -127,8 +136,8 @@ public final class AppUI extends UITemplate {
         // TODO for homework 1
 
         displayButton.setOnAction(ActionEvent->{
-
             String inputData = textArea.getText();
+
             DataComponent dataComponent= this.applicationTemplate.getDataComponent();
             dataComponent.loadData(inputData);
 
