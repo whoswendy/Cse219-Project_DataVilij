@@ -1,6 +1,9 @@
 package actions;
 
+import ui.DataVisualizer;
 import vilij.components.ActionComponent;
+import vilij.components.ConfirmationDialog;
+import vilij.components.Dialog;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.IOException;
@@ -26,6 +29,8 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleNewRequest() {
         // TODO for homework 1
+        applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION).show("New Request ", "Are you sure you would like new?");
+
     }
 
     @Override
@@ -41,6 +46,9 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleExitRequest() {
         // TODO for homework 1
+
+
+
     }
 
     @Override

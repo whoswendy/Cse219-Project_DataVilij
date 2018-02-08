@@ -1,6 +1,8 @@
 package ui;
 
 import actions.AppActions;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
@@ -28,6 +30,8 @@ public final class AppUI extends UITemplate {
 
     /** The application to which this class of actions belongs. */
     ApplicationTemplate applicationTemplate;
+
+    private static final String SEPARATOR = "/";
 
     @SuppressWarnings("FieldCanBeLocal")
     private Button                       scrnshotButton; // toolbar button to take a screenshot of the data
@@ -58,13 +62,13 @@ public final class AppUI extends UITemplate {
         printButton = setToolbarButton(printiconPath, manager.getPropertyValue(PRINT_TOOLTIP.name()), false);
         exitButton = setToolbarButton(exiticonPath, manager.getPropertyValue(EXIT_TOOLTIP.name()), false);
 
-//        PropertyManager manager1 = applicationTemplate.manager;
-//        String iconsPath = "/" + String.join("/",
-//                manager.getPropertyValue("GUI_ICON_RESOURCE_PATH"));
-//        String scrnshoticonPath = String.join("/", iconsPath, manager.getPropertyValue("SCREENSHOT_ICON"));
-//        System.out.println(scrnshoticonPath);
-//
-//        scrnshotButton = setToolbarButton(scrnshoticonPath, manager.getPropertyValue("SCREENSHOT_TOOLTIP"), true);
+        PropertyManager manager1 = applicationTemplate.manager;
+        String iconsPath = SEPARATOR + String.join(SEPARATOR,
+                manager.getPropertyValue("GUI_ICON_RESOURCE_PATH"));
+        String scrnshoticonPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue("SCREENSHOT_ICON"));
+        System.out.println(scrnshoticonPath);
+
+        //scrnshotButton = setToolbarButton(scrnshoticonPath, manager.getPropertyValue("SCREENSHOT_TOOLTIP"), true);
 
         toolBar = new ToolBar(newButton, saveButton, loadButton, printButton, exitButton);
     }
@@ -134,13 +138,24 @@ public final class AppUI extends UITemplate {
 
     private void setWorkspaceActions() {
         // TODO for homework 1
-
+        textArea.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if(!newValue.equals(oldValue)){
+                    newButton.setDisable(false);
+                    saveButton.setDisable(false);
+                }else if(newValue.isEmpty() || oldValue.isEmpty()){
+                    newButton.setDisable(true);
+                }
+            }
+        });
         displayButton.setOnAction(ActionEvent->{
             String inputData = textArea.getText();
-
             DataComponent dataComponent= this.applicationTemplate.getDataComponent();
             dataComponent.loadData(inputData);
 
         });
+
+
     }
 }

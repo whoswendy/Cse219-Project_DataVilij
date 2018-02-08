@@ -7,6 +7,7 @@ functionality within the main workspace. -->
         <!-- RESOURCE FILES AND FOLDERS -->
         <property name="DATA_RESOURCE_PATH" value="data"/>
 
+        <property name="GUI_ICON_RESOURCE_PATH" value="gui.icons"/>
         <!-- USER INTERFACE ICON FILES -->
         <property name="SCREENSHOT_ICON" value="screenshot.png"/>
 

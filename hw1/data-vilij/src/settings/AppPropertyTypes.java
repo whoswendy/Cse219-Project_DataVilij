@@ -12,6 +12,8 @@ public enum AppPropertyTypes {
     /* resource files and folders */
     DATA_RESOURCE_PATH,
 
+    GUI_ICON_RESOURCE_PATH,
+
     /* user interface icon file names */
     SCREENSHOT_ICON,
 
