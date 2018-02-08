@@ -92,7 +92,9 @@ public final class AppUI extends UITemplate {
     @Override
     public void clear() {
         // TODO for homework 1
-        chart.getData().clear();;
+        textArea.clear();
+        chart.getData().clear();
+        applicationTemplate.getDataComponent().clear();
 
     }
 

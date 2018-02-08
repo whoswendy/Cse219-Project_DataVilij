@@ -29,8 +29,14 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleNewRequest() {
         // TODO for homework 1
-        applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION).show("New Request ", "Are you sure you would like new?");
-
+        Dialog confirm = applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION);
+        confirm.show("New?","Would you like to save the data?");
+        ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
+        if(op.equals(ConfirmationDialog.Option.YES)){
+            System.out.println("YES");
+        }else if(op.equals(ConfirmationDialog.Option.NO)){
+            applicationTemplate.getUIComponent().clear();
+        }
     }
 
     @Override
@@ -46,8 +52,7 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleExitRequest() {
         // TODO for homework 1
-
-
+        System.exit(0);
 
     }
 
