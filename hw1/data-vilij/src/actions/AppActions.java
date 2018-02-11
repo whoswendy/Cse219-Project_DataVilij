@@ -1,11 +1,14 @@
 package actions;
 
+import javafx.stage.FileChooser;
 import ui.DataVisualizer;
 import vilij.components.ActionComponent;
 import vilij.components.ConfirmationDialog;
 import vilij.components.Dialog;
 import vilij.templates.ApplicationTemplate;
 
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -34,6 +37,11 @@ public final class AppActions implements ActionComponent {
         ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
         if(op.equals(ConfirmationDialog.Option.YES)){
             System.out.println("YES");
+            try{
+                boolean saved = promptToSave();
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }else if(op.equals(ConfirmationDialog.Option.NO)){
             applicationTemplate.getUIComponent().clear();
         }
@@ -80,6 +88,17 @@ public final class AppActions implements ActionComponent {
     private boolean promptToSave() throws IOException {
         // TODO for homework 1
         // TODO remove the placeholder line below after you have implemented this method
+        Dialog confirm = applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION);
+        confirm.show("Save?","Save data?");
+        ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
+        if(op.equals(ConfirmationDialog.Option.YES)){
+            System.out.println("THE DU");
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save");
+            //fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("tsd"));
+            //fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("tsd"));
+            File file = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+        }
         return false;
     }
 }

@@ -12,12 +12,15 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import vilij.components.DataComponent;
-
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
+import settings.AppPropertyTypes.*;
+import static settings.AppPropertyTypes.GUI_ICON_RESOURCE_PATH;
 
+import static settings.AppPropertyTypes.SCREENSHOT_ICON;
+import static settings.AppPropertyTypes.SCREENSHOT_TOOLTIP;
 import static vilij.settings.PropertyTypes.*;
 import static vilij.settings.PropertyTypes.EXIT_TOOLTIP;
 
@@ -64,13 +67,13 @@ public final class AppUI extends UITemplate {
 
         PropertyManager manager1 = applicationTemplate.manager;
         String iconsPath = SEPARATOR + String.join(SEPARATOR,
-                manager.getPropertyValue("GUI_ICON_RESOURCE_PATH"));
-        String scrnshoticonPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue("SCREENSHOT_ICON"));
+                manager.getPropertyValue(GUI_ICON_RESOURCE_PATH.name()));
+        String scrnshoticonPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(SCREENSHOT_ICON.name()));
         System.out.println(scrnshoticonPath);
 
-        //scrnshotButton = setToolbarButton(scrnshoticonPath, manager.getPropertyValue("SCREENSHOT_TOOLTIP"), true);
+        scrnshotButton = setToolbarButton(scrnshoticonPath, manager.getPropertyValue(SCREENSHOT_TOOLTIP.name()), true);
 
-        toolBar = new ToolBar(newButton, saveButton, loadButton, printButton, exitButton);
+        toolBar = new ToolBar(newButton, saveButton, loadButton, printButton, exitButton,scrnshotButton);
     }
 
     @Override
@@ -95,6 +98,8 @@ public final class AppUI extends UITemplate {
         textArea.clear();
         chart.getData().clear();
         applicationTemplate.getDataComponent().clear();
+        newButton.setDisable(true);
+        saveButton.setDisable(true);
 
     }
 
@@ -102,10 +107,10 @@ public final class AppUI extends UITemplate {
         // TODO for homework 1
         StackPane stackPane = new StackPane();
 
-        NumberAxis xAxis = new NumberAxis(0,10,1);
+        NumberAxis xAxis = new NumberAxis();
         xAxis.setLabel("X Values");
 
-        NumberAxis yAxis = new NumberAxis(0,10,1);
+        NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("Y Values");
 
 
@@ -143,11 +148,15 @@ public final class AppUI extends UITemplate {
         textArea.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if(!newValue.equals(oldValue)){
+                boolean changed = false;
+                if(!newValue.equals("")){
                     newButton.setDisable(false);
                     saveButton.setDisable(false);
-                }else if(newValue.isEmpty() || oldValue.isEmpty()){
+                    System.out.println(oldValue);
+                    System.out.println(newValue);
+                }else if(newValue.equals("") || oldValue.equals("")){
                     newButton.setDisable(true);
+                    saveButton.setDisable(true);
                 }
             }
         });
