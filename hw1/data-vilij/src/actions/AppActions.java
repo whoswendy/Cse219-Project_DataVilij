@@ -1,14 +1,16 @@
 package actions;
 
+import javafx.scene.control.TextArea;
 import javafx.stage.FileChooser;
-import ui.DataVisualizer;
+import ui.AppUI;
 import vilij.components.ActionComponent;
 import vilij.components.ConfirmationDialog;
 import vilij.components.Dialog;
 import vilij.templates.ApplicationTemplate;
 
-import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -88,17 +90,29 @@ public final class AppActions implements ActionComponent {
     private boolean promptToSave() throws IOException {
         // TODO for homework 1
         // TODO remove the placeholder line below after you have implemented this method
-        Dialog confirm = applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION);
-        confirm.show("Save?","Save data?");
-        ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
-        if(op.equals(ConfirmationDialog.Option.YES)){
-            System.out.println("THE DU");
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Save");
-            //fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("tsd"));
-            //fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("tsd"));
-            File file = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save");
+        FileChooser.ExtensionFilter ex = new FileChooser.ExtensionFilter(".tsd",".tsd");
+        fileChooser.getExtensionFilters().add(ex);
+        //fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("tsd"));
+        File file = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+
+
+        try{
+            FileWriter fw = new FileWriter(file);
+            System.out.println(file.getName());
+            AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+            TextArea input = ui.getTextArea();
+            fw.write(input.getText());
+            //System.out.println(file.getAbsolutePath());
+            fw.close();
+        }catch(IOException e){
+            System.out.println("not working");
         }
+
+        if (file != null)
+                return true;
         return false;
     }
 }

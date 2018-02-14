@@ -17,6 +17,8 @@ import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
 import settings.AppPropertyTypes.*;
+
+
 import static settings.AppPropertyTypes.GUI_ICON_RESOURCE_PATH;
 
 import static settings.AppPropertyTypes.SCREENSHOT_ICON;
@@ -149,14 +151,16 @@ public final class AppUI extends UITemplate {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 boolean changed = false;
-                if(!newValue.equals("")){
+                if(!newValue.equals("") && !hasNewText){
                     newButton.setDisable(false);
                     saveButton.setDisable(false);
-                    System.out.println(oldValue);
-                    System.out.println(newValue);
+                    hasNewText = true;
+                    //System.out.println(oldValue);
+                    //System.out.println(newValue);
                 }else if(newValue.equals("") || oldValue.equals("")){
                     newButton.setDisable(true);
                     saveButton.setDisable(true);
+                    hasNewText = false;
                 }
             }
         });
@@ -165,8 +169,13 @@ public final class AppUI extends UITemplate {
             DataComponent dataComponent= this.applicationTemplate.getDataComponent();
             dataComponent.loadData(inputData);
 
+
         });
 
 
+    }
+
+    public TextArea getTextArea(){
+        return textArea;
     }
 }
