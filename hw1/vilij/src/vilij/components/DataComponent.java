@@ -12,6 +12,8 @@ public interface DataComponent {
 
     void loadData(Path dataFilePath);
 
+    void loadData(String dataString);
+
     void saveData(Path dataFilePath);
 
     void clear();

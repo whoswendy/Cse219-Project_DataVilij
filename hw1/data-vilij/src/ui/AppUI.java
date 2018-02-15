@@ -16,15 +16,13 @@ import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
-import settings.AppPropertyTypes.*;
-
-
-import static settings.AppPropertyTypes.GUI_ICON_RESOURCE_PATH;
 
 import static settings.AppPropertyTypes.SCREENSHOT_ICON;
 import static settings.AppPropertyTypes.SCREENSHOT_TOOLTIP;
+
 import static vilij.settings.PropertyTypes.*;
 import static vilij.settings.PropertyTypes.EXIT_TOOLTIP;
+
 
 /**
  * This is the application's user interface implementation.
@@ -69,7 +67,7 @@ public final class AppUI extends UITemplate {
 
         PropertyManager manager1 = applicationTemplate.manager;
         String iconsPath = SEPARATOR + String.join(SEPARATOR,
-                manager.getPropertyValue(GUI_ICON_RESOURCE_PATH.name()));
+                manager.getPropertyValue(GUI_RESOURCE_PATH.name()) + SEPARATOR + manager.getPropertyValue(ICONS_RESOURCE_PATH.name()));
         String scrnshoticonPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(SCREENSHOT_ICON.name()));
         System.out.println(scrnshoticonPath);
 
@@ -175,6 +173,9 @@ public final class AppUI extends UITemplate {
 
     }
 
+    public boolean getHasNewText(){
+        return hasNewText;
+    }
     public TextArea getTextArea(){
         return textArea;
     }

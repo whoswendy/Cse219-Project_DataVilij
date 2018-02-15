@@ -12,8 +12,6 @@ public enum AppPropertyTypes {
     /* resource files and folders */
     DATA_RESOURCE_PATH,
 
-    GUI_ICON_RESOURCE_PATH,
-
     /* user interface icon file names */
     SCREENSHOT_ICON,
 
@@ -22,6 +20,8 @@ public enum AppPropertyTypes {
 
     /* error messages */
     RESOURCE_SUBDIR_NOT_FOUND,
+
+    EXIT_WHILE_RUNNING_WARNING,
 
     /* application-specific message titles */
     SAVE_UNSAVED_WORK_TITLE,
