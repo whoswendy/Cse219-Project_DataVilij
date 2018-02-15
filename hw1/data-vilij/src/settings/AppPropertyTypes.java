@@ -33,5 +33,8 @@ public enum AppPropertyTypes {
     DATA_FILE_EXT,
     DATA_FILE_EXT_DESC,
     TEXT_AREA,
-    SPECIFIED_FILE
+    SPECIFIED_FILE,
+    HW,
+    DATA_VILIJ,
+    RESOURCES
 }

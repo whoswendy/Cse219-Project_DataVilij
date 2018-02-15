@@ -111,9 +111,15 @@ public final class AppActions implements ActionComponent {
      */
     private boolean promptToSave() throws IOException {
         // TODO for homework 1
-        System.out.println(System.getProperty("user.dir"));
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(applicationTemplate.manager.getPropertyValue(SAVE_WORK_TITLE.name()));
+
+        File path = new File(System.getProperty("user.dir") + File.separator + applicationTemplate.manager.getPropertyValue(HW.name()) + File.separator+
+        applicationTemplate.manager.getPropertyValue(DATA_VILIJ.name()) + File.separator + applicationTemplate.manager.getPropertyValue(RESOURCES.name())
+                + File.separator + applicationTemplate.manager.getPropertyValue(DATA_RESOURCE_PATH.name()));
+
+        fileChooser.setInitialDirectory(path);
 
         FileChooser.ExtensionFilter ex = new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT_DESC.name()),
                 applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT.name()));
