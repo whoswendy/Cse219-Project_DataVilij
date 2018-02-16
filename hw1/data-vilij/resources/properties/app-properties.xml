@@ -32,9 +32,6 @@ functionality within the main workspace. -->
         <property name="TEXT_AREA" value="text area"/>
         <property name="SPECIFIED_FILE" value=" specified file"/>
 
-        <property name="HW" value="hw1"/>
-        <property name="DATA_VILIJ" value="data-vilij"/>
-        <property name="RESOURCES" value="resources"/>
 
     </property_list>
     <property_options_list/>

@@ -11,6 +11,7 @@ import vilij.templates.ApplicationTemplate;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 
 import static vilij.settings.PropertyTypes.*;
@@ -115,11 +116,16 @@ public final class AppActions implements ActionComponent {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(applicationTemplate.manager.getPropertyValue(SAVE_WORK_TITLE.name()));
 
-        File path = new File(System.getProperty("user.dir") + File.separator + applicationTemplate.manager.getPropertyValue(HW.name()) + File.separator+
-        applicationTemplate.manager.getPropertyValue(DATA_VILIJ.name()) + File.separator + applicationTemplate.manager.getPropertyValue(RESOURCES.name())
-                + File.separator + applicationTemplate.manager.getPropertyValue(DATA_RESOURCE_PATH.name()));
+        URL url = applicationTemplate.manager.getClass().getClassLoader().getResource(applicationTemplate.manager
+        .getPropertyValue(DATA_RESOURCE_PATH.name()));
 
-        fileChooser.setInitialDirectory(path);
+        File path = null;
+        try{
+            path = new File(url.toURI());
+            fileChooser.setInitialDirectory(path);
+        }catch(Exception e){
+
+        }
 
         FileChooser.ExtensionFilter ex = new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT_DESC.name()),
                 applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT.name()));
