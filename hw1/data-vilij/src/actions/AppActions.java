@@ -1,6 +1,10 @@
 package actions;
 
+import dataprocessors.AppData;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
 import ui.AppUI;
 import vilij.components.ActionComponent;
@@ -8,11 +12,13 @@ import vilij.components.ConfirmationDialog;
 import vilij.components.Dialog;
 import vilij.templates.ApplicationTemplate;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 import static vilij.settings.PropertyTypes.*;
 import static settings.AppPropertyTypes.*;
@@ -36,6 +42,8 @@ public final class AppActions implements ActionComponent {
     /** Path to the data file currently active. */
     Path dataFilePath;
 
+    private String fileInput;
+
     public AppActions(ApplicationTemplate applicationTemplate) {
         this.applicationTemplate = applicationTemplate;
     }
@@ -50,9 +58,14 @@ public final class AppActions implements ActionComponent {
         if(op.equals(ConfirmationDialog.Option.YES)){
             System.out.println("YES");
             try{
-                boolean saved = promptToSave();
+                AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+                AppData appData = (AppData)(applicationTemplate.getDataComponent());
+                if(appData.processData(ui.getTextArea().getText())){
+                    boolean saved = promptToSave();
+                    ui.getSave().setDisable(true);
+                }
             }catch(Exception e){
-                e.printStackTrace();
+
             }
         }else if(op.equals(ConfirmationDialog.Option.NO)){
             applicationTemplate.getUIComponent().clear();
@@ -62,11 +75,42 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleSaveRequest() {
         // TODO: NOT A PART OF HW 1
+        //handlesavereq goto appdata savedata??
     }
 
     @Override
     public void handleLoadRequest() {
         // TODO: NOT A PART OF HW 1
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(applicationTemplate.manager.getPropertyValue(OPEN_LABEL.name()));
+//        FileChooser.ExtensionFilter ex = new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT_DESC.name()),
+//                applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT.name()));
+//        fileChooser.getExtensionFilters().add(ex);
+        File file = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+
+        try{
+            List<String> list = new ArrayList<>();
+            BufferedReader fileReader = new BufferedReader(new FileReader(file));
+            String s;
+            while((s=fileReader.readLine()) != null){
+                list.add(s);
+            }
+            fileReader.close();
+            fileInput="";
+            for(int i = 0; i< list.size(); i++){
+                fileInput += list.get(i);
+                fileInput += "\n";
+            }
+            System.out.print(fileInput);
+            AppData appData = (AppData) (applicationTemplate.getDataComponent());
+            if(appData.processLoadData(fileInput, file.getName())){
+                appData.loadData(file.toPath());
+            }
+        }catch (Exception e){
+
+        }
+
+
     }
 
     @Override
@@ -80,8 +124,6 @@ public final class AppActions implements ActionComponent {
             ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
             if(op.equals(ConfirmationDialog.Option.YES)){
                 System.exit(0);
-            }else{
-
             }
         }else {
             System.exit(0);
@@ -94,8 +136,21 @@ public final class AppActions implements ActionComponent {
         // TODO: NOT A PART OF HW 1
     }
 
+    @Override
     public void handleScreenshotRequest() throws IOException {
         // TODO: NOT A PART OF HW 1
+        AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter ex = new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue(IMAGE_FILE_EXT_DESC.name()),
+                applicationTemplate.manager.getPropertyValue(IMAGE_FILE_EXT.name()));
+        fileChooser.getExtensionFilters().add(ex);
+
+        File file = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+        WritableImage chartImg = ui.getChart().snapshot(new SnapshotParameters(), null);
+
+        if(file != null){
+            ImageIO.write(SwingFXUtils.fromFXImage(chartImg,null),"png",file);
+        }
     }
 
     /**
@@ -148,5 +203,9 @@ public final class AppActions implements ActionComponent {
         }
 
         return false;
+    }
+
+    public String getFileInput(){
+        return fileInput;
     }
 }

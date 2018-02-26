@@ -30,6 +30,7 @@ public final class TSDProcessor {
 
     private Map<String, String>  dataLabels;
     private Map<String, Point2D> dataPoints;
+    private int lineNumber = 0;
 
     public TSDProcessor() {
         dataLabels = new HashMap<>();
@@ -43,26 +44,35 @@ public final class TSDProcessor {
      * @throws Exception if the input string does not follow the <code>.tsd</code> data format
      */
     public void processString(String tsdString) throws Exception {
+        lineNumber = 0;
         AtomicBoolean hadAnError   = new AtomicBoolean(false);
         StringBuilder errorMessage = new StringBuilder();
+
         Stream.of(tsdString.split("\n"))
               .map(line -> Arrays.asList(line.split("\t")))
               .forEach(list -> {
                   try {
-                      String   name  = checkedname(list.get(0));
+                      lineAdd();
+                      String   name  = checkedname(list.get(0),0);
                       String   label = list.get(1);
                       String[] pair  = list.get(2).split(",");
                       Point2D  point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
-                      dataLabels.put(name, label);
-                      dataPoints.put(name, point);
+                      if(!dataLabels.containsKey(name)){
+                          dataLabels.put(name, label);
+                          dataPoints.put(name, point);
+                      }else{
+                            throw new Exception("Duplicated name: " + name);
+                      }
+
                   } catch (Exception e) {
                       errorMessage.setLength(0);
                       errorMessage.append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
                       hadAnError.set(true);
                   }
               });
-        if (errorMessage.length() > 0)
-            throw new Exception(errorMessage.toString());
+        if (errorMessage.length() > 0) {
+            throw new Exception(errorMessage.toString() + " at line " + lineNumber);
+        }
     }
 
     /**
@@ -70,7 +80,7 @@ public final class TSDProcessor {
      *
      * @param chart the specified chart
      */
-    void toChartData(XYChart<Number, Number> chart) {
+     void toChartData(XYChart<Number, Number> chart) {
         Set<String> labels = new HashSet<>(dataLabels.values());
         for (String label : labels) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
@@ -88,9 +98,14 @@ public final class TSDProcessor {
         dataLabels.clear();
     }
 
-    private String checkedname(String name) throws InvalidDataNameException {
+    private String checkedname(String name, int i) throws InvalidDataNameException {
         if (!name.startsWith("@"))
             throw new InvalidDataNameException(name);
+            //throw new InvalidDataNameException(name + " line " + i+1);
         return name;
+    }
+
+    private void lineAdd(){
+        lineNumber++;
     }
 }

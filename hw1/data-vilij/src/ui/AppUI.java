@@ -3,23 +3,31 @@ package ui;
 import actions.AppActions;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import vilij.components.DataComponent;
+import vilij.components.Dialog;
+import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
 
-import static settings.AppPropertyTypes.SCREENSHOT_ICON;
-import static settings.AppPropertyTypes.SCREENSHOT_TOOLTIP;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import static settings.AppPropertyTypes.*;
 import static vilij.settings.PropertyTypes.*;
 import static vilij.settings.PropertyTypes.EXIT_TOOLTIP;
 
@@ -42,6 +50,11 @@ public final class AppUI extends UITemplate {
     private Button                       displayButton;  // workspace button to display data on the chart
     private TextArea                     textArea;       // text area for new data input
     private boolean                      hasNewText;     // whether or not the text area has any new data since last display
+    private boolean                      chartUpdated;
+    private CheckBox                     checkBox;
+    private boolean                      checked;
+    private String                       iconsPath;
+    private String                       scrnshoticonPath;
 
     public ScatterChart<Number, Number> getChart() { return chart; }
 
@@ -65,11 +78,15 @@ public final class AppUI extends UITemplate {
         printButton = setToolbarButton(printiconPath, manager.getPropertyValue(PRINT_TOOLTIP.name()), false);
         exitButton = setToolbarButton(exiticonPath, manager.getPropertyValue(EXIT_TOOLTIP.name()), false);
 
-        PropertyManager manager1 = applicationTemplate.manager;
-        String iconsPath = SEPARATOR + String.join(SEPARATOR,
+        cssPath = SEPARATOR + String.join(SEPARATOR,
+                manager.getPropertyValue(CSS_PATH.name()),
+                manager.getPropertyValue(CSS_FILE_PATH.name()));
+
+
+
+        iconsPath = SEPARATOR + String.join(SEPARATOR,
                 manager.getPropertyValue(GUI_RESOURCE_PATH.name()) + SEPARATOR + manager.getPropertyValue(ICONS_RESOURCE_PATH.name()));
-        String scrnshoticonPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(SCREENSHOT_ICON.name()));
-        System.out.println(scrnshoticonPath);
+        scrnshoticonPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(SCREENSHOT_ICON.name()));
 
         scrnshotButton = setToolbarButton(scrnshoticonPath, manager.getPropertyValue(SCREENSHOT_TOOLTIP.name()), true);
 
@@ -84,6 +101,18 @@ public final class AppUI extends UITemplate {
         loadButton.setOnAction(e -> applicationTemplate.getActionComponent().handleLoadRequest());
         exitButton.setOnAction(e -> applicationTemplate.getActionComponent().handleExitRequest());
         printButton.setOnAction(e -> applicationTemplate.getActionComponent().handlePrintRequest());
+
+        scrnshotButton.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event){
+                try{
+                    applicationTemplate.getActionComponent().handleScreenshotRequest();
+                }catch (IOException ie){
+
+                }
+
+            }
+        });
+
     }
 
     @Override
@@ -100,6 +129,8 @@ public final class AppUI extends UITemplate {
         applicationTemplate.getDataComponent().clear();
         newButton.setDisable(true);
         saveButton.setDisable(true);
+        setChartUpdated(false);
+        scrnshotButton.setDisable(true);
 
     }
 
@@ -131,15 +162,17 @@ public final class AppUI extends UITemplate {
         textArea.setMaxWidth(WIDTH);
 
         displayButton = new Button("Display");
+        checkBox = new CheckBox("Read Only");
+        checkBox.setSelected(false);
 
-        //borderPane.getChildren().add(textBox); CAUSES AN ERROR DONT KNOW WHY
         borderPane.setLeft(textArea);
         borderPane.setBottom(displayButton);
+        borderPane.setCenter(checkBox);
 
         //BorderPane ends here
 
         appPane.getChildren().addAll(stackPane,borderPane);
-
+        primaryScene.getStylesheets().add(getClass().getResource(cssPath).toString());
 
     }
 
@@ -148,29 +181,54 @@ public final class AppUI extends UITemplate {
         textArea.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                boolean changed = false;
-                if(!newValue.equals("") && !hasNewText){
-                    newButton.setDisable(false);
-                    saveButton.setDisable(false);
-                    hasNewText = true;
-                    //System.out.println(oldValue);
-                    //System.out.println(newValue);
-                }else if(newValue.equals("") || oldValue.equals("")){
-                    newButton.setDisable(true);
-                    saveButton.setDisable(true);
-                    hasNewText = false;
+                if(!newValue.equals(oldValue)){
+                    if(!newValue.isEmpty()){
+                        if (newValue.charAt(newValue.length() - 1) == '\n')
+                            hasNewText = true;
+                        newButton.setDisable(false);
+                        saveButton.setDisable(false);
+                    }else{
+                        hasNewText = true;
+                        newButton.setDisable(true);
+                        saveButton.setDisable(true);
+                    }
                 }
+//                if(!newValue.equals("") && !hasNewText){
+//                    newButton.setDisable(false);
+//                    saveButton.setDisable(false);
+//                    hasNewText = true;
+//                    //System.out.println(oldValue);
+//                    //System.out.println(newValue);
+//                }else if(newValue.equals("") || oldValue.equals("")){
+//                    newButton.setDisable(true);
+//                    saveButton.setDisable(true);
+//                    hasNewText = false;
+//                }
             }
         });
         displayButton.setOnAction(ActionEvent->{
             String inputData = textArea.getText();
             DataComponent dataComponent= this.applicationTemplate.getDataComponent();
+            dataComponent.clear();
             dataComponent.loadData(inputData);
 
+            if(chartUpdated)scrnshotButton.setDisable(false);
 
         });
 
+        checkBox.setOnAction(ActionEvent->{
+            checked = !checked;
+            checkBox.setSelected(checked);
+            if(checkBox.isSelected()){
+                textArea.setEditable(false);
+                textArea.getStyleClass().add("text-area:readonly");
+                checkBox.setText(applicationTemplate.manager.getPropertyValue(READ_ONLY_ON.name()));
+            }else{
+                textArea.setEditable(true);
+                checkBox.setText(applicationTemplate.manager.getPropertyValue(READ_ONLY_OFF.name()));
+            }
 
+        });
     }
 
     public boolean getHasNewText(){
@@ -179,4 +237,18 @@ public final class AppUI extends UITemplate {
     public TextArea getTextArea(){
         return textArea;
     }
+
+    public Button getSave(){
+        return saveButton;
+    }
+
+    public void setChartUpdated(boolean b){
+        chartUpdated = b;
+    }
+
+    public boolean getChartUpdated(){
+        return chartUpdated;
+    }
+
+
 }
