@@ -2,6 +2,7 @@ package dataprocessors;
 
 import javafx.geometry.Point2D;
 import javafx.scene.chart.XYChart;
+import javafx.scene.shape.Line;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,6 +32,7 @@ public final class TSDProcessor {
     private Map<String, String>  dataLabels;
     private Map<String, Point2D> dataPoints;
     private int lineNumber = 0;
+    private double average;
 
     public TSDProcessor() {
         dataLabels = new HashMap<>();
@@ -87,11 +89,19 @@ public final class TSDProcessor {
             series.setName(label);
             dataLabels.entrySet().stream().filter(entry -> entry.getValue().equals(label)).forEach(entry -> {
                 Point2D point = dataPoints.get(entry.getKey());
-                series.getData().add(new XYChart.Data<>(point.getX(), point.getY()));
+                XYChart.Data p = new XYChart.Data<>(point.getX(), point.getY());
+                p.setExtraValue(entry);
+                //System.out.println(p.getExtraValue());
+                series.getData().add(p);
+                average += point.getY();
             });
             chart.getData().add(series);
         }
+
+        average = average / dataLabels.size();
+        System.out.println("average = " + average);
     }
+
 
     void clear() {
         dataPoints.clear();
@@ -107,5 +117,9 @@ public final class TSDProcessor {
 
     private void lineAdd(){
         lineNumber++;
+    }
+
+    public double getAverage() {
+        return average;
     }
 }

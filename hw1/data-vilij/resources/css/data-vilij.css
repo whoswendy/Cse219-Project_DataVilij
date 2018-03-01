@@ -1,0 +1,38 @@
+.text-area:readonly .content{
+    -fx-background-color: grey;
+}
+
+.axis{
+    -fx-tick-length: 20;
+    -fx-minor-tick-length: 10;
+}
+
+.axis-tick-mark{
+    -fx-stroke: green;
+    -fx-stroke-width: 3px;
+}
+
+.axis-minor-tick-mark{
+    -fx-stroke: black;
+}
+
+.chart-plot-background {
+    -fx-border-color: black;
+    -fx-border-style: solid;
+    -fx-border-width: 3px;
+    -fx-border-insets: 0 0 0 1;
+}
+
+.chart-background{
+    -fx-border-color: transparent;
+}
+
+
+.chart-series-line{
+    -fx-stroke-width: 0px;
+    -fx-stroke: transparent;
+}
+
+.onHover{
+    -fx-background-color: ORANGE;
+}

@@ -1,6 +1,10 @@
 package dataprocessors;
 
 import actions.AppActions;
+import javafx.scene.chart.XYChart;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Shape;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.Dialog;
@@ -43,10 +47,15 @@ public class AppData implements DataComponent {
                 temp+= "\n";
             }
             ui.getTextArea().setText(temp);
+            processor.clear();
+            loadData(fileInput);
             applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Showing only 10 lines",
                     "Loaded data consists of " + list.length + "lines. Showing only the first 10 in the text area.");
+
         }else{
             ui.getTextArea().setText(fileInput);
+            processor.clear();
+            loadData(fileInput);
         }
 
     }
@@ -55,15 +64,28 @@ public class AppData implements DataComponent {
     public void loadData(String dataString) {
         // TODO for homework 1
         try {
+            AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
             processor.processString(dataString);
             displayData();
-            AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+            ui.installToolTips();
             ui.setChartUpdated(true);
+            //createLine();
         } catch (Exception e) {
             applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Exception",e.getMessage());
         }
     }
 
+    private void createLine(){
+        AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+        int i = ui.getChart().getData().size();
+        XYChart.Series line = new XYChart.Series();
+        line.getData().add(new XYChart.Data<>(0,processor.getAverage()));
+        line.getData().add(new XYChart.Data<>(10,processor.getAverage()));
+
+        ui.getChart().getData().add(line);
+        //need to figure out how to make line
+
+    }
     @Override
     public void saveData(Path dataFilePath) {
         // TODO: NOT A PART OF HW 1
@@ -71,8 +93,11 @@ public class AppData implements DataComponent {
 
     @Override
     public void clear() {
+        AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
         processor.clear();
+        ui.getChart().getData().clear();
     }
+
 
     public void displayData() {
         processor.toChartData(((AppUI) applicationTemplate.getUIComponent()).getChart());
@@ -80,6 +105,7 @@ public class AppData implements DataComponent {
 
     public boolean processData(String data){
         try {
+            processor.clear();
             processor.processString(data);
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());

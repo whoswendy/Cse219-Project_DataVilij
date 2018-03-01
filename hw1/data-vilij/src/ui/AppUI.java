@@ -5,12 +5,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.ToolBar;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -46,7 +46,8 @@ public final class AppUI extends UITemplate {
 
     @SuppressWarnings("FieldCanBeLocal")
     private Button                       scrnshotButton; // toolbar button to take a screenshot of the data
-    private ScatterChart<Number, Number> chart;          // the chart where data will be displayed
+    //private ScatterChart<Number, Number> chart;          // the chart where data will be displayed
+    private LineChart<Number,Number>        chart;
     private Button                       displayButton;  // workspace button to display data on the chart
     private TextArea                     textArea;       // text area for new data input
     private boolean                      hasNewText;     // whether or not the text area has any new data since last display
@@ -56,7 +57,8 @@ public final class AppUI extends UITemplate {
     private String                       iconsPath;
     private String                       scrnshoticonPath;
 
-    public ScatterChart<Number, Number> getChart() { return chart; }
+    //public ScatterChart<Number, Number> getChart() { return chart; }
+    public LineChart<Number,Number> getChart(){return chart;}
 
     public AppUI(Stage primaryStage, ApplicationTemplate applicationTemplate) {
         super(primaryStage, applicationTemplate);
@@ -107,7 +109,7 @@ public final class AppUI extends UITemplate {
                 try{
                     applicationTemplate.getActionComponent().handleScreenshotRequest();
                 }catch (IOException ie){
-
+                    ie.printStackTrace();
                 }
 
             }
@@ -144,10 +146,19 @@ public final class AppUI extends UITemplate {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("Y Values");
 
+        //chart = new ScatterChart<>(xAxis,yAxis);
+        chart = new LineChart<>(xAxis,yAxis);
 
-        chart = new ScatterChart<>(xAxis,yAxis);
+        chart.setAlternativeRowFillVisible(false);
+        chart.setAlternativeColumnFillVisible(false);
+        chart.setHorizontalGridLinesVisible(false);
+        chart.setVerticalGridLinesVisible(false);
 
-        stackPane.getChildren().add(chart);
+        chart.getStyleClass().addAll("chart-plot-background","chart-background","axis","axis-tick-mark",
+                "axis-minor-tick-mark");
+
+
+        stackPane.getChildren().addAll(chart);
 
         //StackPane ends here
 
@@ -248,6 +259,21 @@ public final class AppUI extends UITemplate {
 
     public boolean getChartUpdated(){
         return chartUpdated;
+    }
+
+    public void installToolTips(){
+        for (final XYChart.Series<Number, Number> s : chart.getData()) {
+            for (final XYChart.Data<Number, Number> d : s.getData()) {
+                Tooltip t = new Tooltip();
+                t.setText("" + d.getExtraValue());
+                Tooltip.install(d.getNode(),t);
+                d.getNode().setOnMouseEntered(event -> t.isActivated());
+                d.getNode().setOnMouseEntered(event -> d.getNode().getStyleClass().add("onHover"));
+                d.getNode().setOnMouseExited(event -> d.getNode().getStyleClass().remove("onHover"));
+
+
+            }
+        }
     }
 
 

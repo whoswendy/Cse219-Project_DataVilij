@@ -76,6 +76,17 @@ public final class AppActions implements ActionComponent {
     public void handleSaveRequest() {
         // TODO: NOT A PART OF HW 1
         //handlesavereq goto appdata savedata??
+        try{
+            AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+            AppData appData = (AppData)(applicationTemplate.getDataComponent());
+            if(appData.processData(ui.getTextArea().getText())){
+                boolean saved = promptToSave();
+                if(saved) ui.getSave().setDisable(true);
+            }
+        }catch(Exception e){
+
+        }
+
     }
 
     @Override
@@ -101,13 +112,13 @@ public final class AppActions implements ActionComponent {
                 fileInput += list.get(i);
                 fileInput += "\n";
             }
-            System.out.print(fileInput);
+
             AppData appData = (AppData) (applicationTemplate.getDataComponent());
             if(appData.processLoadData(fileInput, file.getName())){
                 appData.loadData(file.toPath());
             }
         }catch (Exception e){
-
+            e.printStackTrace();
         }
 
 
@@ -179,7 +190,7 @@ public final class AppActions implements ActionComponent {
             path = new File(url.toURI());
             fileChooser.setInitialDirectory(path);
         }catch(Exception e){
-
+            e.printStackTrace();
         }
 
         FileChooser.ExtensionFilter ex = new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT_DESC.name()),
