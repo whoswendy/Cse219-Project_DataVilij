@@ -1,21 +1,20 @@
 package dataprocessors;
 
 import actions.AppActions;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.chart.XYChart;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Shape;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.Dialog;
 import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
+
 import static vilij.settings.PropertyTypes.*;
 import static settings.AppPropertyTypes.*;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+
 
 /**
  * This is the concrete application-specific implementation of the data component defined by the Vilij framework.
@@ -27,6 +26,7 @@ public class AppData implements DataComponent {
 
     private TSDProcessor        processor;
     private ApplicationTemplate applicationTemplate;
+    private int lineNumber;
 
     public AppData(ApplicationTemplate applicationTemplate) {
         this.processor = new TSDProcessor();
@@ -40,11 +40,13 @@ public class AppData implements DataComponent {
         AppActions appActions = (AppActions)(applicationTemplate.getActionComponent());
         String fileInput = appActions.getFileInput();
         String[] list = fileInput.split("\n");
+        lineNumber =0;
         if(list.length > 10){
             String temp = "";
-            for(int i = 0; i< 10; i++ ){
-                temp+= list[i];
+            while(lineNumber<10){
+                temp+= list[lineNumber];
                 temp+= "\n";
+                lineNumber++;
             }
             ui.getTextArea().setText(temp);
             processor.clear();
@@ -52,6 +54,15 @@ public class AppData implements DataComponent {
             applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Showing only 10 lines",
                     "Loaded data consists of " + list.length + "lines. Showing only the first 10 in the text area.");
 
+            ui.getTextArea().textProperty().addListener((observable, oldValue, newValue) -> {
+                if(!oldValue.equals(newValue)){
+                    String[] tempArr = newValue.split("\n");
+                    if(tempArr.length < 10 && lineNumber < list.length){
+                          ui.getTextArea().appendText(list[lineNumber]);
+                          lineNumber++;
+                    }
+                }
+            });
         }else{
             ui.getTextArea().setText(fileInput);
             processor.clear();
@@ -69,21 +80,24 @@ public class AppData implements DataComponent {
             displayData();
             ui.installToolTips();
             ui.setChartUpdated(true);
-            //createLine();
+            createLine();
         } catch (Exception e) {
-            applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Exception",e.getMessage());
+            applicationTemplate.getDialog(Dialog.DialogType.ERROR).show(applicationTemplate.manager.
+                    getPropertyValue(EXCEPTION_LABEL.name()),e.getMessage());
         }
     }
 
     private void createLine(){
         AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
-        int i = ui.getChart().getData().size();
+
         XYChart.Series line = new XYChart.Series();
+        line.setName(applicationTemplate.manager.getPropertyValue(AVERAGE_LABEL.name()));
         line.getData().add(new XYChart.Data<>(0,processor.getAverage()));
         line.getData().add(new XYChart.Data<>(10,processor.getAverage()));
 
         ui.getChart().getData().add(line);
-        //need to figure out how to make line
+        ui.getChart().getStyleClass().add(applicationTemplate.manager.getPropertyValue(AVERAGE_LINE.name()));
+
 
     }
     @Override

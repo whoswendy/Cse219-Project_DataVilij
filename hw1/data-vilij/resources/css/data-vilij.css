@@ -29,10 +29,16 @@
 
 
 .chart-series-line{
-    -fx-stroke-width: 0px;
     -fx-stroke: transparent;
 }
 
 .onHover{
     -fx-background-color: ORANGE;
 }
+
+.average-line .chart-series-line{
+     -fx-stroke: green;
+}
+
+
+

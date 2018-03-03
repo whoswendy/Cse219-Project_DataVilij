@@ -106,6 +106,7 @@ public final class TSDProcessor {
     void clear() {
         dataPoints.clear();
         dataLabels.clear();
+        average = 0;
     }
 
     private String checkedname(String name, int i) throws InvalidDataNameException {

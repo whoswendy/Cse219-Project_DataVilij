@@ -100,22 +100,24 @@ public final class AppActions implements ActionComponent {
         File file = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
 
         try{
-            List<String> list = new ArrayList<>();
-            BufferedReader fileReader = new BufferedReader(new FileReader(file));
-            String s;
-            while((s=fileReader.readLine()) != null){
-                list.add(s);
-            }
-            fileReader.close();
-            fileInput="";
-            for(int i = 0; i< list.size(); i++){
-                fileInput += list.get(i);
-                fileInput += "\n";
-            }
+            if(file != null){
+                List<String> list = new ArrayList<>();
+                BufferedReader fileReader = new BufferedReader(new FileReader(file));
+                String s;
+                while((s=fileReader.readLine()) != null){
+                    list.add(s);
+                }
+                fileReader.close();
+                fileInput="";
+                for (String aList : list) {
+                    fileInput += aList;
+                    fileInput += "\n";
+                }
 
-            AppData appData = (AppData) (applicationTemplate.getDataComponent());
-            if(appData.processLoadData(fileInput, file.getName())){
-                appData.loadData(file.toPath());
+                AppData appData = (AppData) (applicationTemplate.getDataComponent());
+                if(appData.processLoadData(fileInput, file.getName())){
+                    appData.loadData(file.toPath());
+                }
             }
         }catch (Exception e){
             e.printStackTrace();

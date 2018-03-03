@@ -1,5 +1,7 @@
 package vilij.components;
 
+import java.io.IOException;
+
 /**
  * Defines the behavior of the core actions to be handled by an application.
  *
@@ -16,5 +18,7 @@ public interface ActionComponent {
     void handleExitRequest();
 
     void handlePrintRequest();
+
+    void handleScreenshotRequest() throws IOException;
 
 }

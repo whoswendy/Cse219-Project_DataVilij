@@ -40,6 +40,16 @@ public enum AppPropertyTypes {
     SPECIFIED_FILE,
     OPEN_LABEL,
     READ_ONLY_ON,
-    READ_ONLY_OFF
+    READ_ONLY_OFF,
+    EXCEPTION_LABEL,
+    AVERAGE_LABEL,
+
+    /*CSS-specific parameters*/
+    AVERAGE_LINE,
+    CHART_BACKGROUND,
+    CHART_PLOT_BACKGROUND,
+    AXIS,
+    AXIS_TICK_MARK,
+    AXIS_MINOR_TICK_MARK
 
 }

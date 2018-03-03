@@ -104,15 +104,13 @@ public final class AppUI extends UITemplate {
         exitButton.setOnAction(e -> applicationTemplate.getActionComponent().handleExitRequest());
         printButton.setOnAction(e -> applicationTemplate.getActionComponent().handlePrintRequest());
 
-        scrnshotButton.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event){
-                try{
-                    applicationTemplate.getActionComponent().handleScreenshotRequest();
-                }catch (IOException ie){
-                    ie.printStackTrace();
-                }
-
+        scrnshotButton.setOnAction(event -> {
+            try{
+                applicationTemplate.getActionComponent().handleScreenshotRequest();
+            }catch (IOException ie){
+                ie.printStackTrace();
             }
+
         });
 
     }
@@ -154,8 +152,11 @@ public final class AppUI extends UITemplate {
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
 
-        chart.getStyleClass().addAll("chart-plot-background","chart-background","axis","axis-tick-mark",
-                "axis-minor-tick-mark");
+        chart.getStyleClass().addAll(applicationTemplate.manager.getPropertyValue(CHART_PLOT_BACKGROUND.name()),
+                applicationTemplate.manager.getPropertyValue(CHART_BACKGROUND.name()),
+                applicationTemplate.manager.getPropertyValue(AXIS.name()),
+                applicationTemplate.manager.getPropertyValue(AXIS_TICK_MARK.name()),
+                applicationTemplate.manager.getPropertyValue(AXIS_MINOR_TICK_MARK.name()));
 
 
         stackPane.getChildren().addAll(chart);
@@ -189,32 +190,18 @@ public final class AppUI extends UITemplate {
 
     private void setWorkspaceActions() {
         // TODO for homework 1
-        textArea.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if(!newValue.equals(oldValue)){
-                    if(!newValue.isEmpty()){
-                        if (newValue.charAt(newValue.length() - 1) == '\n')
-                            hasNewText = true;
-                        newButton.setDisable(false);
-                        saveButton.setDisable(false);
-                    }else{
+        textArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(!newValue.equals(oldValue)){
+                if(!newValue.isEmpty()){
+                    if (newValue.charAt(newValue.length() - 1) == '\n')
                         hasNewText = true;
-                        newButton.setDisable(true);
-                        saveButton.setDisable(true);
-                    }
+                    newButton.setDisable(false);
+                    saveButton.setDisable(false);
+                }else{
+                    hasNewText = true;
+                    newButton.setDisable(true);
+                    saveButton.setDisable(true);
                 }
-//                if(!newValue.equals("") && !hasNewText){
-//                    newButton.setDisable(false);
-//                    saveButton.setDisable(false);
-//                    hasNewText = true;
-//                    //System.out.println(oldValue);
-//                    //System.out.println(newValue);
-//                }else if(newValue.equals("") || oldValue.equals("")){
-//                    newButton.setDisable(true);
-//                    saveButton.setDisable(true);
-//                    hasNewText = false;
-//                }
             }
         });
         displayButton.setOnAction(ActionEvent->{

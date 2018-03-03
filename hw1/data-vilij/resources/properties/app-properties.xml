@@ -40,6 +40,19 @@ functionality within the main workspace. -->
         <property name="READ_ONLY_ON" value="Read Only Mode Is On"/>
         <property name="READ_ONLY_OFF" value="Read Only Mode Is Off"/>
 
+        <property name="OPEN_LABEL" value="Open"/>
+
+        <property name="EXCEPTION_LABEL" value="Exception"/>
+        <property name="AVERAGE_LABEL" value="Average"/>
+
+        <!--CSS-SPECIFIC PARAMETERS -->
+        <property name="AVERAGE_LINE" value="average-line"/>
+
+        <property name="CHART_BACKGROUND"  value="chart-background"/>
+        <property name="CHART_PLOT_BACKGROUND"  value="chart-plot-background"/>
+        <property name="AXIS"  value="axis"/>
+        <property name="AXIS_TICK_MARK"  value="axis-tick-mark"/>
+        <property name="AXIS_MINOR_TICK_MARK"  value="axis-minor-tick-mark"/>
 
 
     </property_list>
