@@ -1,9 +1,10 @@
 package dataprocessors;
 
 import actions.AppActions;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.TextArea;
+import javafx.scene.shape.Line;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.Dialog;
@@ -13,6 +14,8 @@ import vilij.templates.ApplicationTemplate;
 import static vilij.settings.PropertyTypes.*;
 import static settings.AppPropertyTypes.*;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Path;
 
 
@@ -41,34 +44,54 @@ public class AppData implements DataComponent {
         String fileInput = appActions.getFileInput();
         String[] list = fileInput.split("\n");
         lineNumber =0;
+
         if(list.length > 10){
             String temp = "";
             while(lineNumber<10){
                 temp+= list[lineNumber];
-                temp+= "\n";
+                if(lineNumber != 9) {
+                    temp += "\n";
+                }
                 lineNumber++;
             }
             ui.getTextArea().setText(temp);
             processor.clear();
             loadData(fileInput);
-            applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Showing only 10 lines",
-                    "Loaded data consists of " + list.length + "lines. Showing only the first 10 in the text area.");
+            if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
+            applicationTemplate.getDialog(Dialog.DialogType.ERROR).show(
+                    applicationTemplate.manager.getPropertyValue(TITLE_FOR_GREATER_THAN_TEN_LINES.name()),
+                    applicationTemplate.manager.getPropertyValue(MESSAGE_PT_1.name())
+                            + list.length +
+                            applicationTemplate.manager.getPropertyValue(MESSAGE_PT_2.name()));
 
-            ui.getTextArea().textProperty().addListener((observable, oldValue, newValue) -> {
-                if(!oldValue.equals(newValue)){
-                    String[] tempArr = newValue.split("\n");
-                    if(tempArr.length < 10 && lineNumber < list.length){
-                          ui.getTextArea().appendText(list[lineNumber]);
-                          lineNumber++;
+            ui.getTextArea().textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                String[] tempArr = newValue.split("\n");
+                int num = 10 - tempArr.length;
+                    if(tempArr.length < 10 && lineNumber < list.length && !appActions.getFileInput().equals("")){
+                        changeText(list,ui.getTextArea(),num);
                     }
-                }
             });
         }else{
             ui.getTextArea().setText(fileInput);
             processor.clear();
             loadData(fileInput);
+            if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
         }
 
+    }
+
+    private void changeText(String[] list, TextArea textArea, int num){
+        String text = textArea.getText();
+        for(int i = 0 ; i< num; i++){
+            if(lineNumber < list.length){
+                text += list[lineNumber];
+                text += "\n";
+                lineNumber++;
+            }else{
+                break;
+            }
+        }
+        textArea.setText(text);
     }
 
     @Override
@@ -92,17 +115,35 @@ public class AppData implements DataComponent {
 
         XYChart.Series line = new XYChart.Series();
         line.setName(applicationTemplate.manager.getPropertyValue(AVERAGE_LABEL.name()));
-        line.getData().add(new XYChart.Data<>(0,processor.getAverage()));
-        line.getData().add(new XYChart.Data<>(10,processor.getAverage()));
+
+        XYChart.Data<Number,Number> point1 = new XYChart.Data<>(0, processor.getAverage());
+        XYChart.Data<Number,Number> point2 = new XYChart.Data<>(10, processor.getAverage());
+        line.getData().add(point1);
+        line.getData().add(point2);
 
         ui.getChart().getData().add(line);
         ui.getChart().getStyleClass().add(applicationTemplate.manager.getPropertyValue(AVERAGE_LINE.name()));
-
+        point1.getNode().setVisible(false);
+        point2.getNode().setVisible(false);
 
     }
     @Override
     public void saveData(Path dataFilePath) {
         // TODO: NOT A PART OF HW 1
+        System.out.println("saving");
+        File file = dataFilePath.toFile();
+        if(file != null){
+            try {
+                FileWriter fw = new FileWriter(file);
+                System.out.println(file.getName());
+                AppUI ui = (AppUI) (applicationTemplate.getUIComponent());
+                TextArea input = ui.getTextArea();
+                fw.write(input.getText());
+                fw.close();
+            }
+            catch (Exception e){
+            }
+        }
     }
 
     @Override

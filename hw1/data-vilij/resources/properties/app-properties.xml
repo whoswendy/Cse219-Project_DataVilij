@@ -54,6 +54,12 @@ functionality within the main workspace. -->
         <property name="AXIS_TICK_MARK"  value="axis-tick-mark"/>
         <property name="AXIS_MINOR_TICK_MARK"  value="axis-minor-tick-mark"/>
 
+        <!--TEXTS-->
+        <property name="TITLE_FOR_GREATER_THAN_TEN_LINES" value="Showing only 10 lines"/>
+        <property name="MESSAGE_PT_1" value="Loaded data consists of "/>
+        <property name="MESSAGE_PT_2" value="lines.Showing only the first 10 in the text area."/>
+
+
 
     </property_list>
     <property_options_list/>

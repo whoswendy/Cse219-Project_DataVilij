@@ -124,14 +124,15 @@ public final class AppUI extends UITemplate {
     @Override
     public void clear() {
         // TODO for homework 1
-        textArea.clear();
         chart.getData().clear();
         applicationTemplate.getDataComponent().clear();
         newButton.setDisable(true);
         saveButton.setDisable(true);
         setChartUpdated(false);
         scrnshotButton.setDisable(true);
-
+        AppActions appActions = (AppActions) (applicationTemplate.getActionComponent());
+        appActions.clearFileInput();
+        textArea.clear();
     }
 
     private void layout() {
@@ -246,6 +247,10 @@ public final class AppUI extends UITemplate {
 
     public boolean getChartUpdated(){
         return chartUpdated;
+    }
+
+    public Button getScrnshotButton(){
+        return scrnshotButton;
     }
 
     public void installToolTips(){

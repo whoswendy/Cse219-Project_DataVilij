@@ -27,7 +27,6 @@
     -fx-border-color: transparent;
 }
 
-
 .chart-series-line{
     -fx-stroke: transparent;
 }
@@ -37,8 +36,7 @@
 }
 
 .average-line .chart-series-line{
-     -fx-stroke: green;
+    -fx-stroke: green;
 }
-
 
 

@@ -18,8 +18,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-
 import static vilij.settings.PropertyTypes.*;
 import static settings.AppPropertyTypes.*;
 import static settings.AppPropertyTypes.SAVE_UNSAVED_WORK_TITLE;
@@ -48,6 +46,9 @@ public final class AppActions implements ActionComponent {
         this.applicationTemplate = applicationTemplate;
     }
 
+    public void clearFileInput(){
+        fileInput = "";
+    }
     @Override
     public void handleNewRequest() {
         // TODO for homework 1
@@ -63,6 +64,7 @@ public final class AppActions implements ActionComponent {
                 if(appData.processData(ui.getTextArea().getText())){
                     boolean saved = promptToSave();
                     ui.getSave().setDisable(true);
+                    dataFilePath = null;
                 }
             }catch(Exception e){
 
@@ -76,22 +78,29 @@ public final class AppActions implements ActionComponent {
     public void handleSaveRequest() {
         // TODO: NOT A PART OF HW 1
         //handlesavereq goto appdata savedata??
-        try{
-            AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
-            AppData appData = (AppData)(applicationTemplate.getDataComponent());
-            if(appData.processData(ui.getTextArea().getText())){
-                boolean saved = promptToSave();
-                if(saved) ui.getSave().setDisable(true);
+        AppUI ui = (AppUI) (applicationTemplate.getUIComponent());
+        AppData appData = (AppData) (applicationTemplate.getDataComponent());
+        if(dataFilePath == null) {
+            try {
+                if (appData.processData(ui.getTextArea().getText())) {
+                    boolean saved = promptToSave();
+                    if (saved) {
+                        ui.getSave().setDisable(true);
+                    }
+                }
+            } catch (Exception e) {
+
             }
-        }catch(Exception e){
-
+        }else{
+            appData.saveData(dataFilePath);
         }
-
     }
 
     @Override
     public void handleLoadRequest() {
         // TODO: NOT A PART OF HW 1
+        AppData appData = (AppData) (applicationTemplate.getDataComponent());
+        appData.clear();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(applicationTemplate.manager.getPropertyValue(OPEN_LABEL.name()));
 //        FileChooser.ExtensionFilter ex = new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT_DESC.name()),
@@ -114,7 +123,6 @@ public final class AppActions implements ActionComponent {
                     fileInput += "\n";
                 }
 
-                AppData appData = (AppData) (applicationTemplate.getDataComponent());
                 if(appData.processLoadData(fileInput, file.getName())){
                     appData.loadData(file.toPath());
                 }
@@ -189,8 +197,10 @@ public final class AppActions implements ActionComponent {
 
         File path = null;
         try{
-            path = new File(url.toURI());
-            fileChooser.setInitialDirectory(path);
+            if(url != null){
+                path = new File(url.toURI());
+                fileChooser.setInitialDirectory(path);
+            }
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -209,6 +219,7 @@ public final class AppActions implements ActionComponent {
                 fw.write(input.getText());
                 //System.out.println(file.getAbsolutePath());
                 fw.close();
+                dataFilePath = file.toPath();
             }catch(IOException e){
                 System.out.println("not working");
             }
