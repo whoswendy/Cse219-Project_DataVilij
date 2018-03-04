@@ -4,7 +4,6 @@ import actions.AppActions;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TextArea;
-import javafx.scene.shape.Line;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.Dialog;
@@ -117,12 +116,23 @@ public class AppData implements DataComponent {
         line.setName(applicationTemplate.manager.getPropertyValue(AVERAGE_LABEL.name()));
 
         XYChart.Data<Number,Number> point1 = new XYChart.Data<>(0, processor.getAverage());
-        XYChart.Data<Number,Number> point2 = new XYChart.Data<>(10, processor.getAverage());
+        XYChart.Data<Number,Number> point2 = new XYChart.Data<>(20, processor.getAverage());
         line.getData().add(point1);
         line.getData().add(point2);
 
         ui.getChart().getData().add(line);
-        ui.getChart().getStyleClass().add(applicationTemplate.manager.getPropertyValue(AVERAGE_LINE.name()));
+        //ui.getChart().getStyleClass().add(applicationTemplate.manager.getPropertyValue(AVERAGE_LINE.name()));
+
+        int i = 0;
+        for(XYChart.Series series: ui.getChart().getData()){
+            if(series.equals(line)){
+                javafx.scene.Node temp = ui.getChart().lookup(".default-color"+i+".chart-series-line");
+                temp.setStyle("-fx-stroke: green");
+            }else{
+                i++;
+            }
+        }
+
         point1.getNode().setVisible(false);
         point2.getNode().setVisible(false);
 
