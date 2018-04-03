@@ -37,7 +37,6 @@ public class AppData implements DataComponent {
 
     @Override
     public void loadData(Path dataFilePath) {
-        // TODO: NOT A PART OF HW 1
         AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
         AppActions appActions = (AppActions)(applicationTemplate.getActionComponent());
         String fileInput = appActions.getFileInput();
@@ -53,9 +52,10 @@ public class AppData implements DataComponent {
                 }
                 lineNumber++;
             }
+            ui.setTextArea(false);
             ui.getTextArea().setText(temp);
-            processor.clear();
-            loadData(fileInput);
+            //processor.clear();
+            //loadData(fileInput);
             if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
             applicationTemplate.getDialog(Dialog.DialogType.ERROR).show(
                     applicationTemplate.manager.getPropertyValue(TITLE_FOR_GREATER_THAN_TEN_LINES.name()),
@@ -71,9 +71,10 @@ public class AppData implements DataComponent {
                     }
             });
         }else{
+            ui.setTextArea(false);
             ui.getTextArea().setText(fileInput);
-            processor.clear();
-            loadData(fileInput);
+            //processor.clear();
+            //loadData(fileInput);
             if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
         }
 
@@ -160,7 +161,7 @@ public class AppData implements DataComponent {
     public void clear() {
         AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
         processor.clear();
-        ui.getChart().getData().clear();
+        //ui.getChart().getData().clear();
     }
 
 

@@ -51,33 +51,35 @@ public final class AppActions implements ActionComponent {
     }
     @Override
     public void handleNewRequest() {
-        // TODO for homework 1
-        Dialog confirm = applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION);
-        confirm.show(applicationTemplate.manager.getPropertyValue(SAVE_UNSAVED_WORK_TITLE.name()),
-                applicationTemplate.manager.getPropertyValue(SAVE_UNSAVED_WORK.name()));
-        ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
-        if(op.equals(ConfirmationDialog.Option.YES)){
-            System.out.println("YES");
-            try{
-                AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
-                AppData appData = (AppData)(applicationTemplate.getDataComponent());
-                if(appData.processData(ui.getTextArea().getText())){
-                    boolean saved = promptToSave();
-                    ui.getSave().setDisable(true);
-                    dataFilePath = null;
-                }
-            }catch(Exception e){
+        AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+        AppData appData = (AppData)(applicationTemplate.getDataComponent());
+        if(ui.getHasNewText()) {
+            Dialog confirm = applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION);
+            confirm.show(applicationTemplate.manager.getPropertyValue(SAVE_UNSAVED_WORK_TITLE.name()),
+                    applicationTemplate.manager.getPropertyValue(SAVE_UNSAVED_WORK.name()));
+            ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
+            if (op.equals(ConfirmationDialog.Option.YES)) {
+                System.out.println("YES");
+                try {
 
+                    if (appData.processData(ui.getTextArea().getText())) {
+                        boolean saved = promptToSave();
+                        ui.getSave().setDisable(true);
+                        dataFilePath = null;
+                    }
+                } catch (Exception e) {
+
+                }
+            } else if (op.equals(ConfirmationDialog.Option.NO)) {
+                applicationTemplate.getUIComponent().clear();
             }
-        }else if(op.equals(ConfirmationDialog.Option.NO)){
-            applicationTemplate.getUIComponent().clear();
+        }else{
+            ui.setTextArea(true);
         }
     }
 
     @Override
     public void handleSaveRequest() {
-        // TODO: NOT A PART OF HW 1
-        //handlesavereq goto appdata savedata??
         AppUI ui = (AppUI) (applicationTemplate.getUIComponent());
         AppData appData = (AppData) (applicationTemplate.getDataComponent());
         if(dataFilePath == null) {
@@ -98,14 +100,11 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleLoadRequest() {
-        // TODO: NOT A PART OF HW 1
+
         AppData appData = (AppData) (applicationTemplate.getDataComponent());
         appData.clear();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(applicationTemplate.manager.getPropertyValue(OPEN_LABEL.name()));
-//        FileChooser.ExtensionFilter ex = new FileChooser.ExtensionFilter(applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT_DESC.name()),
-//                applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT.name()));
-//        fileChooser.getExtensionFilters().add(ex);
         File file = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
 
         try{
@@ -136,7 +135,6 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleExitRequest() {
-        // TODO for homework 1
         AppUI ui = (AppUI) (applicationTemplate.getUIComponent());
         boolean newText = ui.getHasNewText();
         if(newText){
