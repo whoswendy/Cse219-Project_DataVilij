@@ -61,7 +61,6 @@ public final class AppActions implements ActionComponent {
             if (op.equals(ConfirmationDialog.Option.YES)) {
                 System.out.println("YES");
                 try {
-
                     if (appData.processData(ui.getTextArea().getText())) {
                         boolean saved = promptToSave();
                         ui.getSave().setDisable(true);
@@ -75,6 +74,7 @@ public final class AppActions implements ActionComponent {
             }
         }else{
             ui.setTextArea(true);
+            ui.clear();
         }
     }
 

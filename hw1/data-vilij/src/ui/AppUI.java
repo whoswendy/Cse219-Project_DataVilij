@@ -12,6 +12,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import vilij.components.DataComponent;
 
@@ -21,6 +25,9 @@ import vilij.templates.UITemplate;
 
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 import static settings.AppPropertyTypes.*;
@@ -51,6 +58,10 @@ public final class AppUI extends UITemplate {
     private boolean                      chartUpdated;
     private String                       iconsPath;
     private String                       scrnshoticonPath;
+    private BorderPane                  borderPane;
+    private VBox                        vBox;
+    private VBox                        vBox2;
+    private Label                       label = new Label();
 
     //public ScatterChart<Number, Number> getChart() { return chart; }
     public LineChart<Number,Number> getChart(){return chart;}
@@ -112,14 +123,14 @@ public final class AppUI extends UITemplate {
 
     @Override
     public void initialize() {
-        //layout();
+        layout();
         //setWorkspaceActions();
     }
 
     @Override
     public void clear() {
         // TODO for homework 1
-        chart.getData().clear();
+        //chart.getData().clear();
         applicationTemplate.getDataComponent().clear();
         newButton.setDisable(false);
         saveButton.setDisable(true);
@@ -127,37 +138,51 @@ public final class AppUI extends UITemplate {
         scrnshotButton.setDisable(true);
         AppActions appActions = (AppActions) (applicationTemplate.getActionComponent());
         appActions.clearFileInput();
+        textArea.setEditable(true);
         textArea.clear();
     }
 
     private void layout() {
-        StackPane stackPane = new StackPane();
+//        StackPane stackPane = new StackPane();
+//
+//        NumberAxis xAxis = new NumberAxis();
+//        xAxis.setLabel("X Values");
+//
+//        NumberAxis yAxis = new NumberAxis();
+//        yAxis.setLabel("Y Values");
+//
+//        chart = new LineChart<>(xAxis,yAxis);
+//
+//        chart.setAlternativeRowFillVisible(false);
+//        chart.setAlternativeColumnFillVisible(false);
+//        chart.setHorizontalGridLinesVisible(false);
+//        chart.setVerticalGridLinesVisible(false);
+//
+//        chart.getStyleClass().addAll(applicationTemplate.manager.getPropertyValue(CHART_PLOT_BACKGROUND.name()),
+//                applicationTemplate.manager.getPropertyValue(CHART_BACKGROUND.name()),
+//                applicationTemplate.manager.getPropertyValue(AXIS.name()),
+//                applicationTemplate.manager.getPropertyValue(AXIS_TICK_MARK.name()),
+//                applicationTemplate.manager.getPropertyValue(AXIS_MINOR_TICK_MARK.name()));
+//
+//
+//        stackPane.getChildren().addAll(chart);
+//
+//        //StackPane ends here
+//        appPane.getChildren().addAll(stackPane);
+//        primaryScene.getStylesheets().add(getClass().getResource(cssPath).toString());
 
-        NumberAxis xAxis = new NumberAxis();
-        xAxis.setLabel("X Values");
+        borderPane = new BorderPane();
+        vBox = new VBox();
 
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Y Values");
-
-        chart = new LineChart<>(xAxis,yAxis);
-
-        chart.setAlternativeRowFillVisible(false);
-        chart.setAlternativeColumnFillVisible(false);
-        chart.setHorizontalGridLinesVisible(false);
-        chart.setVerticalGridLinesVisible(false);
-
-        chart.getStyleClass().addAll(applicationTemplate.manager.getPropertyValue(CHART_PLOT_BACKGROUND.name()),
-                applicationTemplate.manager.getPropertyValue(CHART_BACKGROUND.name()),
-                applicationTemplate.manager.getPropertyValue(AXIS.name()),
-                applicationTemplate.manager.getPropertyValue(AXIS_TICK_MARK.name()),
-                applicationTemplate.manager.getPropertyValue(AXIS_MINOR_TICK_MARK.name()));
-
-
-        stackPane.getChildren().addAll(chart);
-
-        //StackPane ends here
-        appPane.getChildren().addAll(stackPane);
-        primaryScene.getStylesheets().add(getClass().getResource(cssPath).toString());
+        Label label = new Label();
+        label.setText("                Plot");
+        label.setFont(Font.font(30));
+        Rectangle rectangle = new Rectangle();
+        rectangle.setHeight(400);
+        rectangle.setWidth(400);
+        vBox.getChildren().addAll(label,rectangle);
+        borderPane.setRight(vBox);
+        appPane.getChildren().add(borderPane);
 
     }
 
@@ -185,14 +210,15 @@ public final class AppUI extends UITemplate {
                 toggle = !toggle;
                 if(toggle){
                     if(appData.processData(textArea.getText())) {
-                        toggleButton.setText("Edit Data");
+                        toggleButton.setText("Edit Data?");
                         textArea.setEditable(false);
                         textArea.getStyleClass().add("text-area:readonly");
+                        getTextInfo();
                     }else
                         toggle = !toggle;
                 }else
                 {
-                    toggleButton.setText("Done with creating data");
+                    toggleButton.setText("Done with creating data?");
                     textArea.setEditable(true);
                 }
 
@@ -202,37 +228,77 @@ public final class AppUI extends UITemplate {
     }
 
     public void setTextArea(boolean enabled){
-        BorderPane borderPane = new BorderPane();
-        if(textArea == null) {
-            textArea = new TextArea();
-            double HEIGHT = windowHeight / 4;
-            System.out.println("Window Height = " + windowHeight);
-            double WIDTH = HEIGHT * 2;
-            System.out.println("Window Width = " + windowWidth);
-            textArea.setMaxHeight(HEIGHT);
-            textArea.setMaxWidth(WIDTH);
+        vBox2 = new VBox();
+        textArea = new TextArea();
+        double HEIGHT = windowHeight / 4;
+        System.out.println("Window Height = " + windowHeight);
+        double WIDTH = HEIGHT * 2;
+        System.out.println("Window Width = " + windowWidth);
+        textArea.setMaxHeight(HEIGHT);
+        textArea.setMaxWidth(WIDTH);
+        vBox2.getChildren().add(textArea);
 
-            if(enabled) {
-                toggleButton = new Button();
-                toggleButton.setText("Done with creating data");
-                toggle = false;
-                borderPane.setBottom(toggleButton);
-                setWorkspaceActions();
-            }
-
-            borderPane.setLeft(textArea);
-
-            appPane.getChildren().add(borderPane);
-
-        }
-        if(!enabled){
+        if(enabled){
+            toggleButton = new Button();
+            toggleButton.setText("Done with creating data");
+            toggle = false;
+            vBox2.getChildren().add(toggleButton);
+            setWorkspaceActions();
+        }else{
             textArea.setEditable(false);
-            textArea.getStyleClass().add("text-area:readonly");
+        }
+        borderPane.setLeft(vBox2);
+    }
+
+    public void getTextInfo(){
+        String text = textArea.getText();
+        if(vBox2.getChildren().contains(label)) vBox2.getChildren().remove(label);
+        if(!text.equals("")) {
+            String[] lines = text.split("\n");
+            ArrayList<String> names = new ArrayList<>();
+            ArrayList<String> labels = new ArrayList<>();
+            for (String line : lines) {
+                String[] temp = line.split("\t");
+                if (!names.contains(temp[0])) names.add(temp[0]);
+                if (!labels.contains(temp[1])) labels.add(temp[1]);
+            }
+            String unfinishedData = lines.length + " instances with " + labels.size() + " labels. " +
+                    "The labels are: \n";
+            for (String label : labels) {
+                unfinishedData += label + "\n";
+            }
+            label.setText(unfinishedData);
+            vBox2.getChildren().add(label);
+        }
+    }
+
+    public void setLoadedData(String loadedData, String fileName){
+        if(vBox2.getChildren().contains(label)) vBox2.getChildren().remove(label);
+        if(!loadedData.equals("")) {
+            String[] lines = loadedData.split("\n");
+            ArrayList<String> names = new ArrayList<>();
+            ArrayList<String> labels = new ArrayList<>();
+            for (String line : lines) {
+                String[] temp = line.split("\t");
+                if (!names.contains(temp[0])) names.add(temp[0]);
+                if (!labels.contains(temp[1])) labels.add(temp[1]);
+            }
+            String unfinishedData = lines.length + " instances with " + labels.size() + " labels. " +
+                    "The data is loaded from " + fileName +
+                    "The labels are: \n";
+            for (String label : labels) {
+                unfinishedData += label + "\n";
+            }
+            label.setText(unfinishedData);
+            vBox2.getChildren().add(label);
         }
     }
 
     public boolean getHasNewText(){
         return hasNewText;
+    }
+    public void setHasNewText(boolean b){
+        hasNewText = b;
     }
     public TextArea getTextArea(){
         return textArea;
@@ -253,6 +319,7 @@ public final class AppUI extends UITemplate {
     public Button getScrnshotButton(){
         return scrnshotButton;
     }
+
 
     public void installToolTips(){
         for (final XYChart.Series<Number, Number> s : chart.getData()) {

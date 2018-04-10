@@ -54,6 +54,8 @@ public class AppData implements DataComponent {
             }
             ui.setTextArea(false);
             ui.getTextArea().setText(temp);
+            ui.getSave().setDisable(true);
+            ui.setLoadedData(fileInput,dataFilePath.toString());
             //processor.clear();
             //loadData(fileInput);
             if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
@@ -73,6 +75,8 @@ public class AppData implements DataComponent {
         }else{
             ui.setTextArea(false);
             ui.getTextArea().setText(fileInput);
+            ui.setLoadedData(fileInput,dataFilePath.toString());
+            ui.getSave().setDisable(true);
             //processor.clear();
             //loadData(fileInput);
             if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
