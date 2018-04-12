@@ -3,8 +3,11 @@ package ui;
 import actions.AppActions;
 
 import dataprocessors.AppData;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -73,6 +76,10 @@ public final class AppUI extends UITemplate {
     private Button                      runButton;
     private Button                      config = new Button("Config");
     private boolean                     isConfigured;
+    private boolean                     continuousRun;
+    private int                         maximumIterations;
+    private int                         intervals;
+    private int                         numberOfClusters;
 
     //public ScatterChart<Number, Number> getChart() { return chart; }
     public LineChart<Number,Number> getChart(){return chart;}
@@ -151,6 +158,8 @@ public final class AppUI extends UITemplate {
         appActions.clearFileInput();
         textArea.setEditable(true);
         textArea.clear();
+
+        vBox = new VBox();
     }
 
     private void layout() {
@@ -193,6 +202,7 @@ public final class AppUI extends UITemplate {
         rectangle.setWidth(400);
         vBox.getChildren().addAll(label,rectangle);
         borderPane.setRight(vBox);
+
         appPane.getChildren().add(borderPane);
 
     }
@@ -238,6 +248,7 @@ public final class AppUI extends UITemplate {
 
     public void setTextArea(boolean enabled){
         vBox2 = new VBox();
+        vBox2.setSpacing(30);
         textArea = new TextArea();
         double HEIGHT = windowHeight / 4;
         double WIDTH = HEIGHT * 2;
@@ -325,14 +336,13 @@ public final class AppUI extends UITemplate {
             createMenuOfAlgorithms(algorithmType);
         });
         vBox2.getChildren().add(algorithmMenu);
-
-
     }
 
     public void createMenuOfAlgorithms(String type){
         if(vBox2.getChildren().contains(hBox)) vBox2.getChildren().remove(hBox);
         if (type.equals("Classification")) {
             hBox = new HBox();
+            hBox.setSpacing(20);
             ToggleGroup toggleGroup = new ToggleGroup();
             RadioButton classification1 = new RadioButton("classification1");
             classification1.setToggleGroup(toggleGroup);
@@ -348,7 +358,7 @@ public final class AppUI extends UITemplate {
         } else {
             hBox = new HBox();
             ToggleGroup toggleGroup = new ToggleGroup();
-            RadioButton clustering1 = new RadioButton("clustering1");
+            RadioButton clustering1 = new RadioButton("clustering1          ");
             clustering1.setToggleGroup(toggleGroup);
             config.setDisable(true);
 
@@ -363,6 +373,79 @@ public final class AppUI extends UITemplate {
         config.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                final Stage dialog = new Stage();
+                dialog.setTitle("Run Configurations");
+                VBox vBoxTemp1 = new VBox();
+                HBox hBoxTemp1 = new HBox();
+                HBox hBoxTemp2 = new HBox();
+                HBox hBoxTemp3 = new HBox();
+
+                ChangeListener<String> forceNumberListener = (observable, oldValue, newValue) -> {
+                    if (!newValue.matches("\\d*"))
+                        ((StringProperty) observable).set(oldValue);
+                };
+
+                Label maxIterations = new Label("Max. Iterations");
+                maxIterations.setFont(Font.font(20));
+                TextField maxIt = new TextField();
+                maxIt.setText(""+maximumIterations);
+                maxIt.textProperty().addListener(forceNumberListener);
+                maxIt.setPrefSize(60,40);
+
+                Label updateIntervals = new Label("Update Intervals");
+                updateIntervals.setFont(Font.font(20));
+                TextField upIntervals = new TextField();
+                upIntervals.setText(""+intervals);
+                upIntervals.textProperty().addListener(forceNumberListener);
+                upIntervals.setPrefSize(60,40);
+
+                hBoxTemp1.getChildren().addAll(maxIterations,maxIt);
+                hBoxTemp2.getChildren().addAll(updateIntervals,upIntervals);
+                hBoxTemp1.setSpacing(25);
+                hBoxTemp2.setSpacing(25);
+
+                TextField numClusters = new TextField(""+numberOfClusters);
+                if(algorithmType.equals("Clustering")){
+                    Label clusters = new Label("Clusters");
+                    clusters.setFont(Font.font(20));
+
+                    numClusters.textProperty().addListener(forceNumberListener);
+                    numClusters.setPrefSize(60,40);
+                    hBoxTemp3.getChildren().addAll(clusters,numClusters);
+                    hBoxTemp3.setSpacing(25);
+                }
+
+                CheckBox continuous = new CheckBox("Continuous Run?");
+                continuous.setSelected(continuousRun);
+                continuous.setFont(Font.font(20));
+
+                Button done = new Button("Done with Configurations");
+                done.setFont(Font.font(15));
+                done.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        maximumIterations = Integer.parseInt(maxIt.getText());
+                        intervals = Integer.parseInt(upIntervals.getText());
+                        numberOfClusters = Integer.parseInt(numClusters.getText());
+                        continuousRun = continuous.isSelected();
+                        System.out.println("Max iterations = " + maximumIterations + " intervals " + intervals + " run?" + continuousRun
+                        + " numClusters = " + numberOfClusters);
+                        isConfigured = true;
+                        if(isConfigured && !algorithm.equals("")) runButton.setDisable(false);
+                        dialog.close();
+                    }
+                });
+
+                if(hBoxTemp3.getChildren().size() > 0){
+                    vBoxTemp1.getChildren().addAll(hBoxTemp1,hBoxTemp2,hBoxTemp3, continuous, done);
+                }else
+                    vBoxTemp1.getChildren().addAll(hBoxTemp1,hBoxTemp2, continuous, done);
+
+                vBoxTemp1.setSpacing(25);
+
+                Scene dialogScene = new Scene(vBoxTemp1, 300, 300);
+                dialog.setScene(dialogScene);
+                dialog.show();
 
             }
         });
@@ -375,7 +458,9 @@ public final class AppUI extends UITemplate {
 
         runButton = new Button("Run");
         runButton.setDisable(true);
-        if(isConfigured && !algorithm.equals("")) runButton.setDisable(false);
+        if(isConfigured) {
+            runButton.setDisable(false);
+        };
         vBox2.getChildren().add(runButton);
 
     }
