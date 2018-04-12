@@ -10,6 +10,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
 import javafx.scene.layout.VBox;
@@ -62,6 +63,16 @@ public final class AppUI extends UITemplate {
     private VBox                        vBox;
     private VBox                        vBox2;
     private Label                       label = new Label();
+    private MenuButton                  algorithmMenu;
+    private int                         numLabels;
+    private MenuItem                    classification;
+    private MenuItem                    clustering;
+    private String                      algorithmType;
+    private HBox                        hBox = new HBox();
+    private String                      algorithm;
+    private Button                      runButton;
+    private Button                      config = new Button("Config");
+    private boolean                     isConfigured;
 
     //public ScatterChart<Number, Number> getChart() { return chart; }
     public LineChart<Number,Number> getChart(){return chart;}
@@ -204,25 +215,23 @@ public final class AppUI extends UITemplate {
             }
         });
 
-        toggleButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                toggle = !toggle;
-                if(toggle){
-                    if(appData.processData(textArea.getText())) {
-                        toggleButton.setText("Edit Data?");
-                        textArea.setEditable(false);
-                        textArea.getStyleClass().add("text-area:readonly");
-                        getTextInfo();
-                    }else
-                        toggle = !toggle;
+        toggleButton.setOnAction(event -> {
+            toggle = !toggle;
+            if(toggle){
+                if(appData.processData(textArea.getText())) {
+                    toggleButton.setText("Edit Data?");
+                    textArea.setEditable(false);
+                    textArea.getStyleClass().add("text-area:readonly");
+                    getTextInfo();
+                    showAlgorithmTypes();
                 }else
-                {
-                    toggleButton.setText("Done with creating data?");
-                    textArea.setEditable(true);
-                }
-
+                    toggle = !toggle;
+            }else
+            {
+                toggleButton.setText("Done with creating data?");
+                textArea.setEditable(true);
             }
+
         });
 
     }
@@ -231,9 +240,7 @@ public final class AppUI extends UITemplate {
         vBox2 = new VBox();
         textArea = new TextArea();
         double HEIGHT = windowHeight / 4;
-        System.out.println("Window Height = " + windowHeight);
         double WIDTH = HEIGHT * 2;
-        System.out.println("Window Width = " + windowWidth);
         textArea.setMaxHeight(HEIGHT);
         textArea.setMaxWidth(WIDTH);
         vBox2.getChildren().add(textArea);
@@ -269,6 +276,7 @@ public final class AppUI extends UITemplate {
             }
             label.setText(unfinishedData);
             vBox2.getChildren().add(label);
+            numLabels =  labels.size();
         }
     }
 
@@ -291,7 +299,85 @@ public final class AppUI extends UITemplate {
             }
             label.setText(unfinishedData);
             vBox2.getChildren().add(label);
+            numLabels = labels.size();
         }
+    }
+
+    public void showAlgorithmTypes(){
+        if(vBox2.getChildren().contains(algorithmMenu)) {
+            vBox2.getChildren().remove(algorithmMenu);
+        }
+
+        classification = new MenuItem("Classification");
+        clustering = new MenuItem("Clustering");
+        algorithmMenu = new MenuButton("Algorithm Types", null, classification, clustering);
+        if (numLabels < 2) {
+            classification.setDisable(true);
+        }
+        classification.setOnAction(event -> {
+            algorithmMenu.setText(classification.getText());
+            algorithmType = classification.getText();
+            createMenuOfAlgorithms(algorithmType);
+        });
+        clustering.setOnAction(event -> {
+            algorithmMenu.setText(clustering.getText());
+            algorithmType = clustering.getText();
+            createMenuOfAlgorithms(algorithmType);
+        });
+        vBox2.getChildren().add(algorithmMenu);
+
+
+    }
+
+    public void createMenuOfAlgorithms(String type){
+        if(vBox2.getChildren().contains(hBox)) vBox2.getChildren().remove(hBox);
+        if (type.equals("Classification")) {
+            hBox = new HBox();
+            ToggleGroup toggleGroup = new ToggleGroup();
+            RadioButton classification1 = new RadioButton("classification1");
+            classification1.setToggleGroup(toggleGroup);
+            config.setDisable(true);
+
+            classification1.setOnAction(event -> {
+                classification1.setSelected(true);
+                config.setDisable(false);
+                algorithm = classification1.getText();
+            });
+
+            hBox.getChildren().addAll(classification1, config);
+        } else {
+            hBox = new HBox();
+            ToggleGroup toggleGroup = new ToggleGroup();
+            RadioButton clustering1 = new RadioButton("clustering1");
+            clustering1.setToggleGroup(toggleGroup);
+            config.setDisable(true);
+
+            clustering1.setOnAction(event -> {
+                clustering1.setSelected(true);
+                config.setDisable(false);
+                algorithm = clustering1.getText();
+            });
+
+            hBox.getChildren().addAll(clustering1, config);
+        }
+        config.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+
+            }
+        });
+        vBox2.getChildren().add(hBox);
+        addRunButton();
+    }
+
+    private void addRunButton(){
+        if(vBox2.getChildren().contains(runButton)) vBox2.getChildren().remove(runButton);
+
+        runButton = new Button("Run");
+        runButton.setDisable(true);
+        if(isConfigured && !algorithm.equals("")) runButton.setDisable(false);
+        vBox2.getChildren().add(runButton);
+
     }
 
     public boolean getHasNewText(){

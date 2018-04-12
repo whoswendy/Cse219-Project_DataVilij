@@ -129,8 +129,6 @@ public final class AppActions implements ActionComponent {
         }catch (Exception e){
             e.printStackTrace();
         }
-
-
     }
 
     @Override

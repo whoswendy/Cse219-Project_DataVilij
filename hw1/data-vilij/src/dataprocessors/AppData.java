@@ -52,10 +52,8 @@ public class AppData implements DataComponent {
                 }
                 lineNumber++;
             }
-            ui.setTextArea(false);
-            ui.getTextArea().setText(temp);
-            ui.getSave().setDisable(true);
-            ui.setLoadedData(fileInput,dataFilePath.toString());
+
+            uiActions(fileInput,dataFilePath.toString(),temp);
             //processor.clear();
             //loadData(fileInput);
             if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
@@ -73,15 +71,21 @@ public class AppData implements DataComponent {
                     }
             });
         }else{
-            ui.setTextArea(false);
-            ui.getTextArea().setText(fileInput);
-            ui.setLoadedData(fileInput,dataFilePath.toString());
-            ui.getSave().setDisable(true);
+            uiActions(fileInput,dataFilePath.toString(),fileInput);
             //processor.clear();
             //loadData(fileInput);
             if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
         }
 
+    }
+
+    private void uiActions(String fileInput, String dataFile, String text){
+        AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+        ui.setTextArea(false);
+        ui.getTextArea().setText(text);
+        ui.getSave().setDisable(true);
+        ui.setLoadedData(fileInput,dataFile);
+        ui.showAlgorithmTypes();
     }
 
     private void changeText(String[] list, TextArea textArea, int num){
