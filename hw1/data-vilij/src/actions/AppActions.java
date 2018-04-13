@@ -94,7 +94,9 @@ public final class AppActions implements ActionComponent {
 
             }
         }else{
-            appData.saveData(dataFilePath);
+            if(appData.processData(ui.getTextArea().getText())){
+                appData.saveData(dataFilePath);
+            }
         }
     }
 

@@ -9,19 +9,15 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import vilij.components.DataComponent;
 
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
@@ -29,9 +25,7 @@ import vilij.templates.UITemplate;
 
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 import static settings.AppPropertyTypes.*;
@@ -76,10 +70,13 @@ public final class AppUI extends UITemplate {
     private Button                      runButton;
     private Button                      config = new Button("Config");
     private boolean                     isConfigured;
-    private boolean                     continuousRun;
-    private int                         maximumIterations;
-    private int                         intervals;
-    private int                         numberOfClusters;
+    private boolean                     classificationContinuousRun;
+    private boolean                     clusteringContinuousRun;
+    private int                         classificationMaximumIterations;
+    private int                         classificationIntervals;
+    private int                         clusteringnMaximumIterations;
+    private int                         clusteringIntervals;
+    private int                         clusteringNumberOfClusters;
 
     //public ScatterChart<Number, Number> getChart() { return chart; }
     public LineChart<Number,Number> getChart(){return chart;}
@@ -278,7 +275,7 @@ public final class AppUI extends UITemplate {
             for (String line : lines) {
                 String[] temp = line.split("\t");
                 if (!names.contains(temp[0])) names.add(temp[0]);
-                if (!labels.contains(temp[1])) labels.add(temp[1]);
+                if (!labels.contains(temp[1]) && !temp[1].toLowerCase().equals("null")) labels.add(temp[1]);
             }
             String unfinishedData = lines.length + " instances with " + labels.size() + " labels. " +
                     "The labels are: \n";
@@ -388,14 +385,14 @@ public final class AppUI extends UITemplate {
                 Label maxIterations = new Label("Max. Iterations");
                 maxIterations.setFont(Font.font(20));
                 TextField maxIt = new TextField();
-                maxIt.setText(""+maximumIterations);
+
                 maxIt.textProperty().addListener(forceNumberListener);
                 maxIt.setPrefSize(60,40);
 
                 Label updateIntervals = new Label("Update Intervals");
                 updateIntervals.setFont(Font.font(20));
                 TextField upIntervals = new TextField();
-                upIntervals.setText(""+intervals);
+
                 upIntervals.textProperty().addListener(forceNumberListener);
                 upIntervals.setPrefSize(60,40);
 
@@ -404,32 +401,44 @@ public final class AppUI extends UITemplate {
                 hBoxTemp1.setSpacing(25);
                 hBoxTemp2.setSpacing(25);
 
-                TextField numClusters = new TextField(""+numberOfClusters);
-                if(algorithmType.equals("Clustering")){
+                CheckBox continuous = new CheckBox("Continuous Run?");
+                continuous.setFont(Font.font(20));
+
+                TextField numClusters = new TextField(""+clusteringNumberOfClusters);
+
+                if(algorithmType.equals("Classification")){
+                    maxIt.setText(""+classificationMaximumIterations);
+                    upIntervals.setText(""+classificationIntervals);
+                    continuous.setSelected(classificationContinuousRun);
+                }else if(algorithmType.equals("Clustering"))
+                {
+                    maxIt.setText(""+clusteringnMaximumIterations);
+                    upIntervals.setText(""+clusteringIntervals);
+                    continuous.setSelected(clusteringContinuousRun);
                     Label clusters = new Label("Clusters");
                     clusters.setFont(Font.font(20));
-
                     numClusters.textProperty().addListener(forceNumberListener);
                     numClusters.setPrefSize(60,40);
                     hBoxTemp3.getChildren().addAll(clusters,numClusters);
                     hBoxTemp3.setSpacing(25);
                 }
 
-                CheckBox continuous = new CheckBox("Continuous Run?");
-                continuous.setSelected(continuousRun);
-                continuous.setFont(Font.font(20));
-
                 Button done = new Button("Done with Configurations");
                 done.setFont(Font.font(15));
                 done.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
-                        maximumIterations = Integer.parseInt(maxIt.getText());
-                        intervals = Integer.parseInt(upIntervals.getText());
-                        numberOfClusters = Integer.parseInt(numClusters.getText());
-                        continuousRun = continuous.isSelected();
-                        System.out.println("Max iterations = " + maximumIterations + " intervals " + intervals + " run?" + continuousRun
-                        + " numClusters = " + numberOfClusters);
+                        if(algorithmType.equals("Classification")){
+                            classificationMaximumIterations = Integer.parseInt(maxIt.getText());
+                            classificationIntervals = Integer.parseInt(upIntervals.getText());
+                            classificationContinuousRun = continuous.isSelected();
+                        }else if(algorithmType.equals("Clustering")){
+                            clusteringnMaximumIterations = Integer.parseInt(maxIt.getText());
+                            clusteringIntervals = Integer.parseInt(upIntervals.getText());
+                            clusteringNumberOfClusters = Integer.parseInt(numClusters.getText());
+                            clusteringContinuousRun = continuous.isSelected();
+                        }
+
                         isConfigured = true;
                         if(isConfigured && !algorithm.equals("")) runButton.setDisable(false);
                         dialog.close();
@@ -455,7 +464,6 @@ public final class AppUI extends UITemplate {
 
     private void addRunButton(){
         if(vBox2.getChildren().contains(runButton)) vBox2.getChildren().remove(runButton);
-
         runButton = new Button("Run");
         runButton.setDisable(true);
         if(isConfigured) {
@@ -490,7 +498,6 @@ public final class AppUI extends UITemplate {
     public Button getScrnshotButton(){
         return scrnshotButton;
     }
-
 
     public void installToolTips(){
         for (final XYChart.Series<Number, Number> s : chart.getData()) {
