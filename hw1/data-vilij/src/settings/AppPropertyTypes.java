@@ -24,6 +24,7 @@ public enum AppPropertyTypes {
     RESOURCE_SUBDIR_NOT_FOUND,
     LOAD_ERROR_TITLE,
     EXIT_WHILE_RUNNING_WARNING,
+    EXIT_WITHOUT_SAVING,
 
     /* application-specific message titles */
     SAVE_UNSAVED_WORK_TITLE,

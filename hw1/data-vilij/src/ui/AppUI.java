@@ -2,6 +2,8 @@ package ui;
 
 import actions.AppActions;
 
+import algorithm.DataSet;
+import algorithm.RandomClassifier;
 import dataprocessors.AppData;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -19,13 +21,18 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+import vilij.components.DataComponent;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.nio.file.Path;
 
 
 import static settings.AppPropertyTypes.*;
@@ -44,6 +51,8 @@ public final class AppUI extends UITemplate {
     ApplicationTemplate applicationTemplate;
 
     private static final String SEPARATOR = "/";
+    private static final String CLUSTERING = "Clustering";
+    private static final String CLASSIFICATION = "Classification";
 
     @SuppressWarnings("FieldCanBeLocal")
     private Button                       scrnshotButton; // toolbar button to take a screenshot of the data
@@ -77,6 +86,8 @@ public final class AppUI extends UITemplate {
     private int                         clusteringnMaximumIterations;
     private int                         clusteringIntervals;
     private int                         clusteringNumberOfClusters;
+    private boolean                     isRunning;
+    private boolean                     dataLoaded;
 
     //public ScatterChart<Number, Number> getChart() { return chart; }
     public LineChart<Number,Number> getChart(){return chart;}
@@ -229,6 +240,8 @@ public final class AppUI extends UITemplate {
                     toggleButton.setText("Edit Data?");
                     textArea.setEditable(false);
                     textArea.getStyleClass().add("text-area:readonly");
+                    if(vBox2.getChildren().contains(hBox)) vBox2.getChildren().remove(hBox);
+                    if(vBox2.getChildren().contains(runButton)) vBox2.getChildren().remove(runButton);
                     getTextInfo();
                     showAlgorithmTypes();
                 }else
@@ -308,6 +321,7 @@ public final class AppUI extends UITemplate {
             label.setText(unfinishedData);
             vBox2.getChildren().add(label);
             numLabels = labels.size();
+            dataLoaded = true;
         }
     }
 
@@ -316,8 +330,8 @@ public final class AppUI extends UITemplate {
             vBox2.getChildren().remove(algorithmMenu);
         }
 
-        classification = new MenuItem("Classification");
-        clustering = new MenuItem("Clustering");
+        classification = new MenuItem(CLASSIFICATION);
+        clustering = new MenuItem(CLUSTERING);
         algorithmMenu = new MenuButton("Algorithm Types", null, classification, clustering);
         if (numLabels < 2) {
             classification.setDisable(true);
@@ -337,7 +351,7 @@ public final class AppUI extends UITemplate {
 
     public void createMenuOfAlgorithms(String type){
         if(vBox2.getChildren().contains(hBox)) vBox2.getChildren().remove(hBox);
-        if (type.equals("Classification")) {
+        if (type.equals(CLASSIFICATION)) {
             hBox = new HBox();
             hBox.setSpacing(20);
             ToggleGroup toggleGroup = new ToggleGroup();
@@ -367,96 +381,93 @@ public final class AppUI extends UITemplate {
 
             hBox.getChildren().addAll(clustering1, config);
         }
-        config.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                final Stage dialog = new Stage();
-                dialog.setTitle("Run Configurations");
-                VBox vBoxTemp1 = new VBox();
-                HBox hBoxTemp1 = new HBox();
-                HBox hBoxTemp2 = new HBox();
-                HBox hBoxTemp3 = new HBox();
+        config.setOnAction((ActionEvent event) -> {
+            final Stage dialog = new Stage();
+            dialog.setTitle("Run Configurations");
+            VBox vBoxTemp1 = new VBox();
+            HBox hBoxTemp1 = new HBox();
+            HBox hBoxTemp2 = new HBox();
+            HBox hBoxTemp3 = new HBox();
 
-                ChangeListener<String> forceNumberListener = (observable, oldValue, newValue) -> {
-                    if (!newValue.matches("\\d*"))
-                        ((StringProperty) observable).set(oldValue);
-                };
+            ChangeListener<String> forceNumberListener = (observable, oldValue, newValue) -> {
+                if (!newValue.matches("\\d*"))
+                    ((StringProperty) observable).set(oldValue);
+            };
 
-                Label maxIterations = new Label("Max. Iterations");
-                maxIterations.setFont(Font.font(20));
-                TextField maxIt = new TextField();
+            Label maxIterations = new Label("Max. Iterations");
+            maxIterations.setFont(Font.font(20));
+            TextField maxIt = new TextField();
 
-                maxIt.textProperty().addListener(forceNumberListener);
-                maxIt.setPrefSize(60,40);
+            maxIt.textProperty().addListener(forceNumberListener);
+            maxIt.setPrefSize(60,40);
 
-                Label updateIntervals = new Label("Update Intervals");
-                updateIntervals.setFont(Font.font(20));
-                TextField upIntervals = new TextField();
+            Label updateIntervals = new Label("Update Intervals");
+            updateIntervals.setFont(Font.font(20));
+            TextField upIntervals = new TextField();
 
-                upIntervals.textProperty().addListener(forceNumberListener);
-                upIntervals.setPrefSize(60,40);
+            upIntervals.textProperty().addListener(forceNumberListener);
+            upIntervals.setPrefSize(60,40);
 
-                hBoxTemp1.getChildren().addAll(maxIterations,maxIt);
-                hBoxTemp2.getChildren().addAll(updateIntervals,upIntervals);
-                hBoxTemp1.setSpacing(25);
-                hBoxTemp2.setSpacing(25);
+            hBoxTemp1.getChildren().addAll(maxIterations,maxIt);
+            hBoxTemp2.getChildren().addAll(updateIntervals,upIntervals);
+            hBoxTemp1.setSpacing(25);
+            hBoxTemp2.setSpacing(25);
 
-                CheckBox continuous = new CheckBox("Continuous Run?");
-                continuous.setFont(Font.font(20));
+            CheckBox continuous = new CheckBox("Continuous Run?");
+            continuous.setFont(Font.font(20));
 
-                TextField numClusters = new TextField(""+clusteringNumberOfClusters);
+            TextField numClusters = new TextField(""+clusteringNumberOfClusters);
 
-                if(algorithmType.equals("Classification")){
-                    maxIt.setText(""+classificationMaximumIterations);
-                    upIntervals.setText(""+classificationIntervals);
-                    continuous.setSelected(classificationContinuousRun);
-                }else if(algorithmType.equals("Clustering"))
-                {
-                    maxIt.setText(""+clusteringnMaximumIterations);
-                    upIntervals.setText(""+clusteringIntervals);
-                    continuous.setSelected(clusteringContinuousRun);
-                    Label clusters = new Label("Clusters");
-                    clusters.setFont(Font.font(20));
-                    numClusters.textProperty().addListener(forceNumberListener);
-                    numClusters.setPrefSize(60,40);
-                    hBoxTemp3.getChildren().addAll(clusters,numClusters);
-                    hBoxTemp3.setSpacing(25);
-                }
-
-                Button done = new Button("Done with Configurations");
-                done.setFont(Font.font(15));
-                done.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent event) {
-                        if(algorithmType.equals("Classification")){
-                            classificationMaximumIterations = Integer.parseInt(maxIt.getText());
-                            classificationIntervals = Integer.parseInt(upIntervals.getText());
-                            classificationContinuousRun = continuous.isSelected();
-                        }else if(algorithmType.equals("Clustering")){
-                            clusteringnMaximumIterations = Integer.parseInt(maxIt.getText());
-                            clusteringIntervals = Integer.parseInt(upIntervals.getText());
-                            clusteringNumberOfClusters = Integer.parseInt(numClusters.getText());
-                            clusteringContinuousRun = continuous.isSelected();
-                        }
-
-                        isConfigured = true;
-                        if(isConfigured && !algorithm.equals("")) runButton.setDisable(false);
-                        dialog.close();
-                    }
-                });
-
-                if(hBoxTemp3.getChildren().size() > 0){
-                    vBoxTemp1.getChildren().addAll(hBoxTemp1,hBoxTemp2,hBoxTemp3, continuous, done);
-                }else
-                    vBoxTemp1.getChildren().addAll(hBoxTemp1,hBoxTemp2, continuous, done);
-
-                vBoxTemp1.setSpacing(25);
-
-                Scene dialogScene = new Scene(vBoxTemp1, 300, 300);
-                dialog.setScene(dialogScene);
-                dialog.show();
-
+            if(algorithmType.equals(CLASSIFICATION)){
+                maxIt.setText(""+classificationMaximumIterations);
+                upIntervals.setText(""+classificationIntervals);
+                continuous.setSelected(classificationContinuousRun);
+            }else if(algorithmType.equals(CLUSTERING))
+            {
+                maxIt.setText(""+clusteringnMaximumIterations);
+                upIntervals.setText(""+clusteringIntervals);
+                continuous.setSelected(clusteringContinuousRun);
+                Label clusters = new Label("Clusters");
+                clusters.setFont(Font.font(20));
+                numClusters.textProperty().addListener(forceNumberListener);
+                numClusters.setPrefSize(60,40);
+                hBoxTemp3.getChildren().addAll(clusters,numClusters);
+                hBoxTemp3.setSpacing(25);
             }
+
+            Button done = new Button("Done with Configurations");
+            done.setFont(Font.font(15));
+            done.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    if(algorithmType.equals(CLASSIFICATION)){
+                        classificationMaximumIterations = Integer.parseInt(maxIt.getText());
+                        classificationIntervals = Integer.parseInt(upIntervals.getText());
+                        classificationContinuousRun = continuous.isSelected();
+                    }else if(algorithmType.equals(CLUSTERING)){
+                        clusteringnMaximumIterations = Integer.parseInt(maxIt.getText());
+                        clusteringIntervals = Integer.parseInt(upIntervals.getText());
+                        clusteringNumberOfClusters = Integer.parseInt(numClusters.getText());
+                        clusteringContinuousRun = continuous.isSelected();
+                    }
+
+                    isConfigured = true;
+                    checkRunButton();
+                    dialog.close();
+                }
+            });
+
+            if(hBoxTemp3.getChildren().size() > 0){
+                vBoxTemp1.getChildren().addAll(hBoxTemp1,hBoxTemp2,hBoxTemp3, continuous, done);
+            }else
+                vBoxTemp1.getChildren().addAll(hBoxTemp1,hBoxTemp2, continuous, done);
+
+            vBoxTemp1.setSpacing(25);
+
+            Scene dialogScene = new Scene(vBoxTemp1, 300, 300);
+            dialog.setScene(dialogScene);
+            dialog.show();
+
         });
         vBox2.getChildren().add(hBox);
         addRunButton();
@@ -466,11 +477,58 @@ public final class AppUI extends UITemplate {
         if(vBox2.getChildren().contains(runButton)) vBox2.getChildren().remove(runButton);
         runButton = new Button("Run");
         runButton.setDisable(true);
-        if(isConfigured) {
-            runButton.setDisable(false);
-        };
+        if(isConfigured){
+            checkRunButton();
+        }
         vBox2.getChildren().add(runButton);
 
+        runButton.setOnAction(event -> {
+            if(algorithm.equals("classification1")){
+                if(dataLoaded){
+                    AppActions appActions = (AppActions)(applicationTemplate.getActionComponent());
+                    Path loadedFile = appActions.getDataFilePath();
+                    try{
+                        DataSet dataSet = DataSet.fromTSDFile(loadedFile);
+                        RandomClassifier classifier = new RandomClassifier(dataSet,classificationMaximumIterations,
+                                classificationIntervals,classificationContinuousRun);
+                        classifier.run();
+                    }catch (IOException e){
+                        e.printStackTrace();
+                    }
+
+                }else{
+                    File temp = new File("temp.tsd");
+                    try{
+                        FileWriter fw = new FileWriter(temp);
+                        fw.write(textArea.getText());
+                        fw.close();
+                    }catch(IOException e){
+                        System.out.println("not working");
+                    }
+
+                    Path file = temp.toPath();
+                    try{
+                        DataSet dataSet = DataSet.fromTSDFile(file);
+                        RandomClassifier classifier = new RandomClassifier(dataSet,classificationMaximumIterations,
+                                classificationIntervals,classificationContinuousRun);
+                        classifier.run();
+                    }catch (IOException e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+            else if(algorithm.equals("clustering1")){
+
+            }
+        });
+
+    }
+
+    private void checkRunButton(){
+        if(algorithmType.equals(CLASSIFICATION) && classificationIntervals != 0 && classificationMaximumIterations != 0)
+            runButton.setDisable(false);
+        if(algorithmType.equals(CLUSTERING) && clusteringIntervals != 0 && clusteringnMaximumIterations != 0 && clusteringNumberOfClusters != 0)
+            runButton.setDisable(false);
     }
 
     public boolean getHasNewText(){
@@ -497,6 +555,10 @@ public final class AppUI extends UITemplate {
 
     public Button getScrnshotButton(){
         return scrnshotButton;
+    }
+
+    public boolean getIsRunning(){
+        return isRunning;
     }
 
     public void installToolTips(){

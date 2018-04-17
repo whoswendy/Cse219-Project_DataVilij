@@ -64,7 +64,7 @@ public final class AppActions implements ActionComponent {
                     if (appData.processData(ui.getTextArea().getText())) {
                         boolean saved = promptToSave();
                         ui.getSave().setDisable(true);
-                        dataFilePath = null;
+                        //dataFilePath = null;
                     }
                 } catch (Exception e) {
 
@@ -126,6 +126,7 @@ public final class AppActions implements ActionComponent {
 
                 if(appData.processLoadData(fileInput, file.getName())){
                     appData.loadData(file.toPath());
+                    dataFilePath = file.toPath();
                 }
             }
         }catch (Exception e){
@@ -137,14 +138,21 @@ public final class AppActions implements ActionComponent {
     public void handleExitRequest() {
         AppUI ui = (AppUI) (applicationTemplate.getUIComponent());
         boolean newText = ui.getHasNewText();
-        if(newText){
-            Dialog confirm = applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION);
+        boolean isRunning = ui.getIsRunning();
+        Dialog confirm = applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION);
+        if(newText && !ui.getTextArea().getText().equals("")){
+            confirm.show("",applicationTemplate.manager.getPropertyValue(EXIT_WITHOUT_SAVING.name()));
+            ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
+            if(op.equals(ConfirmationDialog.Option.YES)){
+                System.exit(0);
+            }
+        }else if(isRunning){
             confirm.show("",applicationTemplate.manager.getPropertyValue(EXIT_WHILE_RUNNING_WARNING.name()));
             ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
             if(op.equals(ConfirmationDialog.Option.YES)){
                 System.exit(0);
             }
-        }else {
+        }else{
             System.exit(0);
         }
 
@@ -230,4 +238,8 @@ public final class AppActions implements ActionComponent {
     public String getFileInput(){
         return fileInput;
     }
-}
+
+    public Path getDataFilePath(){
+        return dataFilePath;
+
+    }}
