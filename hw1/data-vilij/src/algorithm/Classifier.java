@@ -20,7 +20,12 @@ public abstract class Classifier implements Algorithm {
      * See 3.4.4 of the SRS.
      */
     protected List<Integer> output;
+    protected boolean stop;
 
     public List<Integer> getOutput() { return output; }
+
+    public boolean getStop(){return stop; }
+
+    public abstract void resume();
 
 }

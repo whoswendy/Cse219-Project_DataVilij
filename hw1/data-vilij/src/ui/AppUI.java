@@ -2,27 +2,32 @@ package ui;
 
 import actions.AppActions;
 
+import algorithm.Algorithm;
+import algorithm.Classifier;
 import algorithm.DataSet;
 import algorithm.RandomClassifier;
 import dataprocessors.AppData;
+import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
-import vilij.components.DataComponent;
+
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
@@ -33,6 +38,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.nio.file.Path;
+import java.util.List;
 
 
 import static settings.AppPropertyTypes.*;
@@ -88,6 +94,7 @@ public final class AppUI extends UITemplate {
     private int                         clusteringNumberOfClusters;
     private boolean                     isRunning;
     private boolean                     dataLoaded;
+
 
     //public ScatterChart<Number, Number> getChart() { return chart; }
     public LineChart<Number,Number> getChart(){return chart;}
@@ -156,7 +163,7 @@ public final class AppUI extends UITemplate {
     @Override
     public void clear() {
         // TODO for homework 1
-        //chart.getData().clear();
+        chart.getData().clear();
         applicationTemplate.getDataComponent().clear();
         newButton.setDisable(false);
         saveButton.setDisable(true);
@@ -171,47 +178,39 @@ public final class AppUI extends UITemplate {
     }
 
     private void layout() {
-//        StackPane stackPane = new StackPane();
-//
-//        NumberAxis xAxis = new NumberAxis();
-//        xAxis.setLabel("X Values");
-//
-//        NumberAxis yAxis = new NumberAxis();
-//        yAxis.setLabel("Y Values");
-//
-//        chart = new LineChart<>(xAxis,yAxis);
-//
-//        chart.setAlternativeRowFillVisible(false);
-//        chart.setAlternativeColumnFillVisible(false);
-//        chart.setHorizontalGridLinesVisible(false);
-//        chart.setVerticalGridLinesVisible(false);
-//
-//        chart.getStyleClass().addAll(applicationTemplate.manager.getPropertyValue(CHART_PLOT_BACKGROUND.name()),
-//                applicationTemplate.manager.getPropertyValue(CHART_BACKGROUND.name()),
-//                applicationTemplate.manager.getPropertyValue(AXIS.name()),
-//                applicationTemplate.manager.getPropertyValue(AXIS_TICK_MARK.name()),
-//                applicationTemplate.manager.getPropertyValue(AXIS_MINOR_TICK_MARK.name()));
-//
-//
-//        stackPane.getChildren().addAll(chart);
-//
-//        //StackPane ends here
-//        appPane.getChildren().addAll(stackPane);
-//        primaryScene.getStylesheets().add(getClass().getResource(cssPath).toString());
-
         borderPane = new BorderPane();
         vBox = new VBox();
+
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("X Values");
+
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Y Values");
+
+        chart = new LineChart<>(xAxis,yAxis);
+
+        chart.setAlternativeRowFillVisible(false);
+        chart.setAlternativeColumnFillVisible(false);
+        chart.setHorizontalGridLinesVisible(false);
+        chart.setVerticalGridLinesVisible(false);
+
+        chart.getStyleClass().addAll(applicationTemplate.manager.getPropertyValue(CHART_PLOT_BACKGROUND.name()),
+                applicationTemplate.manager.getPropertyValue(CHART_BACKGROUND.name()),
+                applicationTemplate.manager.getPropertyValue(AXIS.name()),
+                applicationTemplate.manager.getPropertyValue(AXIS_TICK_MARK.name()),
+                applicationTemplate.manager.getPropertyValue(AXIS_MINOR_TICK_MARK.name()));
+
 
         Label label = new Label();
         label.setText("                Plot");
         label.setFont(Font.font(30));
-        Rectangle rectangle = new Rectangle();
-        rectangle.setHeight(400);
-        rectangle.setWidth(400);
-        vBox.getChildren().addAll(label,rectangle);
+
+        vBox.getChildren().addAll(label,chart);
         borderPane.setRight(vBox);
 
         appPane.getChildren().add(borderPane);
+
+        primaryScene.getStylesheets().add(getClass().getResource(cssPath).toString());
 
     }
 
@@ -310,7 +309,7 @@ public final class AppUI extends UITemplate {
             for (String line : lines) {
                 String[] temp = line.split("\t");
                 if (!names.contains(temp[0])) names.add(temp[0]);
-                if (!labels.contains(temp[1])) labels.add(temp[1]);
+                if (!labels.contains(temp[1]) && !temp[1].toLowerCase().equals("null")) labels.add(temp[1]);
             }
             String unfinishedData = lines.length + " instances with " + labels.size() + " labels. " +
                     "The data is loaded from " + fileName +
@@ -355,17 +354,17 @@ public final class AppUI extends UITemplate {
             hBox = new HBox();
             hBox.setSpacing(20);
             ToggleGroup toggleGroup = new ToggleGroup();
-            RadioButton classification1 = new RadioButton("classification1");
-            classification1.setToggleGroup(toggleGroup);
+            RadioButton classificationBtn1 = new RadioButton(applicationTemplate.manager.getPropertyValue(CLASSIFICATION1.name()));
+            classificationBtn1.setToggleGroup(toggleGroup);
             config.setDisable(true);
 
-            classification1.setOnAction(event -> {
-                classification1.setSelected(true);
+            classificationBtn1.setOnAction(event -> {
+                classificationBtn1.setSelected(true);
                 config.setDisable(false);
-                algorithm = classification1.getText();
+                algorithm = classificationBtn1.getText();
             });
 
-            hBox.getChildren().addAll(classification1, config);
+            hBox.getChildren().addAll(classificationBtn1, config);
         } else {
             hBox = new HBox();
             ToggleGroup toggleGroup = new ToggleGroup();
@@ -433,6 +432,7 @@ public final class AppUI extends UITemplate {
                 numClusters.setPrefSize(60,40);
                 hBoxTemp3.getChildren().addAll(clusters,numClusters);
                 hBoxTemp3.setSpacing(25);
+
             }
 
             Button done = new Button("Done with Configurations");
@@ -483,15 +483,20 @@ public final class AppUI extends UITemplate {
         vBox2.getChildren().add(runButton);
 
         runButton.setOnAction(event -> {
-            if(algorithm.equals("classification1")){
+            if(algorithm.equals(applicationTemplate.manager.getPropertyValue(CLASSIFICATION1.name()))){
                 if(dataLoaded){
                     AppActions appActions = (AppActions)(applicationTemplate.getActionComponent());
+                    AppData appData = (AppData)(applicationTemplate.getDataComponent());
                     Path loadedFile = appActions.getDataFilePath();
+                    String loadedData = appActions.getFileInput();
                     try{
                         DataSet dataSet = DataSet.fromTSDFile(loadedFile);
                         RandomClassifier classifier = new RandomClassifier(dataSet,classificationMaximumIterations,
                                 classificationIntervals,classificationContinuousRun);
-                        classifier.run();
+                        appData.loadData(loadedData);
+                        if(classificationContinuousRun)
+                            runClassifierAlgorithmContinuous(classifier, dataSet);
+
                     }catch (IOException e){
                         e.printStackTrace();
                     }
@@ -505,13 +510,17 @@ public final class AppUI extends UITemplate {
                     }catch(IOException e){
                         System.out.println("not working");
                     }
-
+                    AppData appData = (AppData)(applicationTemplate.getDataComponent());
                     Path file = temp.toPath();
                     try{
                         DataSet dataSet = DataSet.fromTSDFile(file);
                         RandomClassifier classifier = new RandomClassifier(dataSet,classificationMaximumIterations,
                                 classificationIntervals,classificationContinuousRun);
-                        classifier.run();
+                        appData.loadData(textArea.getText());
+
+                        if(classificationContinuousRun)
+                            runClassifierAlgorithmContinuous(classifier, dataSet);
+
                     }catch (IOException e){
                         e.printStackTrace();
                     }
@@ -524,11 +533,47 @@ public final class AppUI extends UITemplate {
 
     }
 
+    private void runClassifierAlgorithmContinuous(Classifier a, DataSet dataSet){
+        AppData appData = (AppData)(applicationTemplate.getDataComponent());
+        runButton.setDisable(true);
+
+        ArrayList<Point2D> points = dataSet.findRangeOfSet();
+        Thread newThread = new Thread(){
+            public synchronized void run(){
+                a.run();
+            }
+        };
+
+        Thread thread2 = new Thread(){
+            public synchronized void run(){
+
+                while(true){
+                    if(a.getStop()) {
+                        List<Integer> output = a.getOutput();
+                        System.out.println(output.size() + "");
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                appData.createLine(output.get(0),output.get(1),output.get(2),points.get(0),points.get(1));
+
+                            }
+                        });
+                        a.resume();
+                    }
+                }
+            }
+        };
+
+        newThread.start();
+        thread2.start();
+    }
+
     private void checkRunButton(){
         if(algorithmType.equals(CLASSIFICATION) && classificationIntervals != 0 && classificationMaximumIterations != 0)
             runButton.setDisable(false);
         if(algorithmType.equals(CLUSTERING) && clusteringIntervals != 0 && clusteringnMaximumIterations != 0 && clusteringNumberOfClusters != 0)
             runButton.setDisable(false);
+
     }
 
     public boolean getHasNewText(){

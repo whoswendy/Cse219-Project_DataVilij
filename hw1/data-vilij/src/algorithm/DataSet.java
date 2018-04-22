@@ -5,6 +5,7 @@ import javafx.geometry.Point2D;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -78,5 +79,28 @@ public class DataSet {
             }
         });
         return dataset;
+    }
+
+    public ArrayList<Point2D> findRangeOfSet(){
+        ArrayList<Point2D> points = new ArrayList<>(locations.values());
+        double minX = points.get(0).getX();
+        double minY = points.get(0).getY();
+        double maxX = points.get(0).getX();
+        double maxY = points.get(0).getY();
+
+        for(Point2D point: points){
+            if(point.getX() < minX) minX = point.getX();
+            if(point.getY() < minY) minY = point.getY();
+
+            if(point.getX() > maxX) maxX = point.getX();
+            if(point.getY() > maxY) maxY = point.getY();
+        }
+
+        System.out.println("minX = " + minX + "minY = " + minY + "maxX = " + maxX + "maxY = " + maxY);
+
+        ArrayList<Point2D> p = new ArrayList<>();
+        p.add(new Point2D(minX,minY));
+        p.add(new Point2D(maxX,maxY));
+        return p;
     }
 }

@@ -2,6 +2,7 @@ package dataprocessors;
 
 import actions.AppActions;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Point2D;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TextArea;
 import ui.AppUI;
@@ -54,7 +55,7 @@ public class AppData implements DataComponent {
             }
 
             uiActions(fileInput,dataFilePath.toString(),temp);
-            //processor.clear();
+            processor.clear();
             //loadData(fileInput);
             if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
             applicationTemplate.getDialog(Dialog.DialogType.ERROR).show(
@@ -72,7 +73,7 @@ public class AppData implements DataComponent {
             });
         }else{
             uiActions(fileInput,dataFilePath.toString(),fileInput);
-            //processor.clear();
+            processor.clear();
             //loadData(fileInput);
             if(ui.getChartUpdated()) ui.getScrnshotButton().setDisable(false);
         }
@@ -107,28 +108,31 @@ public class AppData implements DataComponent {
         // TODO for homework 1
         try {
             AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
+            clear();
             processor.processString(dataString);
             displayData();
             ui.installToolTips();
             ui.setChartUpdated(true);
-            createLine();
+            //createLine();
         } catch (Exception e) {
             applicationTemplate.getDialog(Dialog.DialogType.ERROR).show(applicationTemplate.manager.
                     getPropertyValue(EXCEPTION_LABEL.name()),e.getMessage());
         }
     }
 
-    private void createLine(){
+    public void createLine(int xCo, int yCo, int constant, Point2D min, Point2D max){
         AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
 
         XYChart.Series line = new XYChart.Series();
-        line.setName(applicationTemplate.manager.getPropertyValue(AVERAGE_LABEL.name()));
+        line.setName("line");
+        if(ui.getChart().getData().contains(line)) ui.getChart().getData().remove(line);
 
-        XYChart.Data<Number,Number> point1 = new XYChart.Data<>(0, processor.getAverage());
-        XYChart.Data<Number,Number> point2 = new XYChart.Data<>(20, processor.getAverage());
+        XYChart.Data<Number,Number> point1 = new XYChart.Data<>(xCo*min.getX(), yCo*min.getY());
+        XYChart.Data<Number,Number> point2 = new XYChart.Data<>(xCo*max.getX(), yCo*max.getY());
         line.getData().add(point1);
         line.getData().add(point2);
 
+        System.out.println(point1.toString() + " " + point2.toString());
         ui.getChart().getData().add(line);
         //ui.getChart().getStyleClass().add(applicationTemplate.manager.getPropertyValue(AVERAGE_LINE.name()));
 
@@ -169,7 +173,7 @@ public class AppData implements DataComponent {
     public void clear() {
         AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
         processor.clear();
-        //ui.getChart().getData().clear();
+        ui.getChart().getData().clear();
     }
 
 
@@ -199,7 +203,7 @@ public class AppData implements DataComponent {
                     applicationTemplate.manager.getPropertyValue(LOAD_ERROR_MSG.name()) + fileName + " "
                             + e.getMessage());
             processor.clear();
-            //applicationTemplate.getUIComponent().clear();
+            applicationTemplate.getUIComponent().clear();
             return false;
         }
 

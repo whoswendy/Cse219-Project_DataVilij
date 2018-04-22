@@ -56,6 +56,8 @@ public enum AppPropertyTypes {
     /*TEXTS*/
     TITLE_FOR_GREATER_THAN_TEN_LINES,
     MESSAGE_PT_1,
-    MESSAGE_PT_2
+    MESSAGE_PT_2,
 
+    /*ALGORITHMS*/
+    CLASSIFICATION1
 }
