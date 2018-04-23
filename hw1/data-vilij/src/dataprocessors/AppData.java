@@ -30,6 +30,7 @@ public class AppData implements DataComponent {
     private TSDProcessor        processor;
     private ApplicationTemplate applicationTemplate;
     private int lineNumber;
+    private XYChart.Series line;
 
     public AppData(ApplicationTemplate applicationTemplate) {
         this.processor = new TSDProcessor();
@@ -123,12 +124,18 @@ public class AppData implements DataComponent {
     public void createLine(int xCo, int yCo, int constant, Point2D min, Point2D max){
         AppUI ui = (AppUI)(applicationTemplate.getUIComponent());
 
-        XYChart.Series line = new XYChart.Series();
-        line.setName("line");
         if(ui.getChart().getData().contains(line)) ui.getChart().getData().remove(line);
+        line = new XYChart.Series();
+        line.setName("line");
 
-        XYChart.Data<Number,Number> point1 = new XYChart.Data<>(xCo*min.getX(), yCo*min.getY());
-        XYChart.Data<Number,Number> point2 = new XYChart.Data<>(xCo*max.getX(), yCo*max.getY());
+        double x1 = min.getX();
+        double y1 = Math.abs(((-1 * xCo * x1) + constant)/yCo);
+
+        double x2 = max.getX();
+        double y2 = Math.abs(((-1 * xCo * x2) + constant)/yCo);
+
+        XYChart.Data<Number,Number> point1 = new XYChart.Data<>(x1, y1);
+        XYChart.Data<Number,Number> point2 = new XYChart.Data<>(x2, y2);
         line.getData().add(point1);
         line.getData().add(point2);
 
@@ -148,6 +155,7 @@ public class AppData implements DataComponent {
 
         point1.getNode().setVisible(false);
         point2.getNode().setVisible(false);
+
 
     }
     @Override

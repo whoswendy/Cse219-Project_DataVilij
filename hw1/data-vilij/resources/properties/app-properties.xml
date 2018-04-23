@@ -61,6 +61,8 @@ will be lost. Are you sure?"/>
         <property name="MESSAGE_PT_1" value="Loaded data consists of "/>
         <property name="MESSAGE_PT_2" value="lines.Showing only the first 10 in the text area."/>
 
+        <property name = "CLASSIFICATION1" value="algorithm.RandomClassifier"/>
+
 
 
     </property_list>

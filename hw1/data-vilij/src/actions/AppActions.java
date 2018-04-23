@@ -140,14 +140,14 @@ public final class AppActions implements ActionComponent {
         boolean newText = ui.getHasNewText();
         boolean isRunning = ui.getIsRunning();
         Dialog confirm = applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION);
-        if(newText && !ui.getTextArea().getText().equals("")){
-            confirm.show("",applicationTemplate.manager.getPropertyValue(EXIT_WITHOUT_SAVING.name()));
+        if(isRunning){
+            confirm.show("",applicationTemplate.manager.getPropertyValue(EXIT_WHILE_RUNNING_WARNING.name()));
             ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
             if(op.equals(ConfirmationDialog.Option.YES)){
                 System.exit(0);
             }
-        }else if(isRunning){
-            confirm.show("",applicationTemplate.manager.getPropertyValue(EXIT_WHILE_RUNNING_WARNING.name()));
+        }else if(newText && !ui.getTextArea().getText().equals("")){
+            confirm.show("",applicationTemplate.manager.getPropertyValue(EXIT_WITHOUT_SAVING.name()));
             ConfirmationDialog.Option op = ConfirmationDialog.getDialog().getSelectedOption();
             if(op.equals(ConfirmationDialog.Option.YES)){
                 System.exit(0);

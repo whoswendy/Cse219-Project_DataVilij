@@ -10,6 +10,7 @@ import dataprocessors.AppData;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 import static settings.AppPropertyTypes.*;
@@ -94,6 +96,9 @@ public final class AppUI extends UITemplate {
     private int                         clusteringNumberOfClusters;
     private boolean                     isRunning;
     private boolean                     dataLoaded;
+    private Button                         next;
+    private boolean                     paused;
+    private  int                        clicked;
 
 
     //public ScatterChart<Number, Number> getChart() { return chart; }
@@ -175,6 +180,9 @@ public final class AppUI extends UITemplate {
         textArea.clear();
 
         vBox = new VBox();
+        if(toggle) toggle = !toggle;
+        toggleButton.setText("Done with creating data?");
+
     }
 
     private void layout() {
@@ -249,6 +257,7 @@ public final class AppUI extends UITemplate {
             {
                 toggleButton.setText("Done with creating data?");
                 textArea.setEditable(true);
+                if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
             }
 
         });
@@ -267,7 +276,7 @@ public final class AppUI extends UITemplate {
 
         if(enabled){
             toggleButton = new Button();
-            toggleButton.setText("Done with creating data");
+            toggleButton.setText("Done with creating data?");
             toggle = false;
             vBox2.getChildren().add(toggleButton);
             setWorkspaceActions();
@@ -328,6 +337,7 @@ public final class AppUI extends UITemplate {
         if(vBox2.getChildren().contains(algorithmMenu)) {
             vBox2.getChildren().remove(algorithmMenu);
         }
+        if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
 
         classification = new MenuItem(CLASSIFICATION);
         clustering = new MenuItem(CLUSTERING);
@@ -437,24 +447,21 @@ public final class AppUI extends UITemplate {
 
             Button done = new Button("Done with Configurations");
             done.setFont(Font.font(15));
-            done.setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    if(algorithmType.equals(CLASSIFICATION)){
-                        classificationMaximumIterations = Integer.parseInt(maxIt.getText());
-                        classificationIntervals = Integer.parseInt(upIntervals.getText());
-                        classificationContinuousRun = continuous.isSelected();
-                    }else if(algorithmType.equals(CLUSTERING)){
-                        clusteringnMaximumIterations = Integer.parseInt(maxIt.getText());
-                        clusteringIntervals = Integer.parseInt(upIntervals.getText());
-                        clusteringNumberOfClusters = Integer.parseInt(numClusters.getText());
-                        clusteringContinuousRun = continuous.isSelected();
-                    }
-
-                    isConfigured = true;
-                    checkRunButton();
-                    dialog.close();
+            done.setOnAction(event1 -> {
+                if(algorithmType.equals(CLASSIFICATION)){
+                    classificationMaximumIterations = Integer.parseInt(maxIt.getText());
+                    classificationIntervals = Integer.parseInt(upIntervals.getText());
+                    classificationContinuousRun = continuous.isSelected();
+                }else if(algorithmType.equals(CLUSTERING)){
+                    clusteringnMaximumIterations = Integer.parseInt(maxIt.getText());
+                    clusteringIntervals = Integer.parseInt(upIntervals.getText());
+                    clusteringNumberOfClusters = Integer.parseInt(numClusters.getText());
+                    clusteringContinuousRun = continuous.isSelected();
                 }
+
+                isConfigured = true;
+                checkRunButton();
+                dialog.close();
             });
 
             if(hBoxTemp3.getChildren().size() > 0){
@@ -494,8 +501,13 @@ public final class AppUI extends UITemplate {
                         RandomClassifier classifier = new RandomClassifier(dataSet,classificationMaximumIterations,
                                 classificationIntervals,classificationContinuousRun);
                         appData.loadData(loadedData);
-                        if(classificationContinuousRun)
+                        if(classificationContinuousRun) {
                             runClassifierAlgorithmContinuous(classifier, dataSet);
+
+                        }
+                        else {
+                            runClassifierAlgorithm(classifier, dataSet);
+                        }
 
                     }catch (IOException e){
                         e.printStackTrace();
@@ -518,8 +530,12 @@ public final class AppUI extends UITemplate {
                                 classificationIntervals,classificationContinuousRun);
                         appData.loadData(textArea.getText());
 
-                        if(classificationContinuousRun)
+                        if(classificationContinuousRun) {
                             runClassifierAlgorithmContinuous(classifier, dataSet);
+                        }
+                        else {
+                            runClassifierAlgorithm(classifier, dataSet);
+                        }
 
                     }catch (IOException e){
                         e.printStackTrace();
@@ -534,8 +550,12 @@ public final class AppUI extends UITemplate {
     }
 
     private void runClassifierAlgorithmContinuous(Classifier a, DataSet dataSet){
+        if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
         AppData appData = (AppData)(applicationTemplate.getDataComponent());
         runButton.setDisable(true);
+        if(!dataLoaded)
+            toggleButton.setDisable(true);
+        isRunning = true;
 
         ArrayList<Point2D> points = dataSet.findRangeOfSet();
         Thread newThread = new Thread(){
@@ -548,24 +568,104 @@ public final class AppUI extends UITemplate {
             public synchronized void run(){
 
                 while(true){
+                    try{
+                        sleep(2000);
+                    }catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
                     if(a.getStop()) {
                         List<Integer> output = a.getOutput();
                         System.out.println(output.size() + "");
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                appData.createLine(output.get(0),output.get(1),output.get(2),points.get(0),points.get(1));
+                        Platform.runLater(() -> appData.createLine(output.get(0),output.get(1),output.get(2),points.get(0),points.get(1)));
 
-                            }
-                        });
                         a.resume();
                     }
+                    if(newThread.getState() == State.TERMINATED){
+                        break;
+                    }
                 }
+                runButton.setDisable(false);
+                scrnshotButton.setDisable(false);
+                if(!dataLoaded)
+                    toggleButton.setDisable(false);
+                isRunning = false;
             }
         };
 
         newThread.start();
         thread2.start();
+    }
+
+    private void runClassifierAlgorithm(Classifier a, DataSet dataSet){
+        if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
+        AppData appData = (AppData)(applicationTemplate.getDataComponent());
+        runButton.setDisable(true);
+        if(!dataLoaded)
+            toggleButton.setDisable(true);
+        isRunning = true;
+        next = new Button("Next");
+        next.setDisable(true);
+        vBox2.getChildren().add(next);
+        clicked = 0;
+
+        ArrayList<Point2D> points = dataSet.findRangeOfSet();
+        Thread runThread = new Thread(){
+            public synchronized void run(){
+                a.run();
+            }
+        };
+
+        Thread thread2 = new Thread(){
+            public synchronized void run(){
+                while(true){
+                    try{
+                        sleep(2000);
+                    }catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
+                    if(a.getStop()) {
+                        List<Integer> output = a.getOutput();
+                        Platform.runLater(() -> {
+                            appData.createLine(output.get(0),output.get(1),output.get(2),points.get(0),points.get(1));
+                            clicked ++;
+                        });
+                        paused = true;
+
+                        if(clicked < classificationIntervals)
+                            next.setDisable(false);
+
+                        if (paused){
+                            try{
+                                //scrnshotButton.setDisable(false);
+                                wait();
+                            }
+                            catch (InterruptedException e){
+                                a.resume();
+                            }
+                        }
+                    }
+                    if(runThread.getState() == State.TERMINATED || clicked == classificationIntervals){
+                        break;
+                    }
+                }
+                scrnshotButton.setDisable(false);
+                isRunning = false;
+                if(!dataLoaded)
+                    toggleButton.setDisable(false);
+            }
+        };
+
+        runThread.start();
+        thread2.start();
+
+        next.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public synchronized void handle(ActionEvent event) {
+                paused = false;
+                next.setDisable(true);
+                thread2.interrupt();
+            }
+        });
     }
 
     private void checkRunButton(){
