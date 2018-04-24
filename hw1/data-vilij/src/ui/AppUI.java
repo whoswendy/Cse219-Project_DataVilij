@@ -346,11 +346,13 @@ public final class AppUI extends UITemplate {
             classification.setDisable(true);
         }
         classification.setOnAction(event -> {
+            if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
             algorithmMenu.setText(classification.getText());
             algorithmType = classification.getText();
             createMenuOfAlgorithms(algorithmType);
         });
         clustering.setOnAction(event -> {
+            if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
             algorithmMenu.setText(clustering.getText());
             algorithmType = clustering.getText();
             createMenuOfAlgorithms(algorithmType);
@@ -553,6 +555,7 @@ public final class AppUI extends UITemplate {
         if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
         AppData appData = (AppData)(applicationTemplate.getDataComponent());
         runButton.setDisable(true);
+        scrnshotButton.setDisable(true);
         if(!dataLoaded)
             toggleButton.setDisable(true);
         isRunning = true;
@@ -603,10 +606,11 @@ public final class AppUI extends UITemplate {
         if(!dataLoaded)
             toggleButton.setDisable(true);
         isRunning = true;
+        scrnshotButton.setDisable(true);
         next = new Button("Next");
         next.setDisable(true);
         vBox2.getChildren().add(next);
-        clicked = 0;
+        clicked = 1;
 
         ArrayList<Point2D> points = dataSet.findRangeOfSet();
         Thread runThread = new Thread(){
@@ -624,15 +628,22 @@ public final class AppUI extends UITemplate {
                         e.printStackTrace();
                     }
                     if(a.getStop()) {
-                        List<Integer> output = a.getOutput();
+                        List<Integer> classOutput = a.getOutput();
                         Platform.runLater(() -> {
+                            List<Integer> output = classOutput;
                             appData.createLine(output.get(0),output.get(1),output.get(2),points.get(0),points.get(1));
                             clicked ++;
                         });
-                        paused = true;
 
-                        if(clicked < classificationIntervals)
-                            next.setDisable(false);
+                        if(clicked % classificationIntervals == 0) {
+                            if (clicked == classificationMaximumIterations) {
+                                next.setDisable(false);
+                            } else {
+                                next.setDisable(false);
+                                scrnshotButton.setDisable(false);
+                                paused = true;
+                            }
+                        }
 
                         if (paused){
                             try{
@@ -642,12 +653,16 @@ public final class AppUI extends UITemplate {
                             catch (InterruptedException e){
                                 a.resume();
                             }
+                        }else{
+                            a.resume();
                         }
                     }
-                    if(runThread.getState() == State.TERMINATED || clicked == classificationIntervals){
+                    if(runThread.getState() == State.TERMINATED || clicked == classificationMaximumIterations){
+                        next.setDisable(true);
                         break;
                     }
                 }
+                runButton.setDisable(false);
                 scrnshotButton.setDisable(false);
                 isRunning = false;
                 if(!dataLoaded)
@@ -664,6 +679,7 @@ public final class AppUI extends UITemplate {
                 paused = false;
                 next.setDisable(true);
                 thread2.interrupt();
+                scrnshotButton.setDisable(true);
             }
         });
     }

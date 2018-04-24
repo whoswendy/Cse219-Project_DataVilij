@@ -64,6 +64,10 @@ public class RandomClassifier extends Classifier {
             int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
             int constant     = new Double(RAND.nextDouble() * 100).intValue();
 
+            while(xCoefficient == 0 || yCoefficient ==0){
+                xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
+                yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
+            }
             // this is the real output of the classifier
             output = Arrays.asList(xCoefficient, yCoefficient, constant);
             System.out.println("i="+ i + " output: " + output.get(0) + " " + output.get(1) + " " + output.get(2));
@@ -86,10 +90,15 @@ public class RandomClassifier extends Classifier {
 
         }
 
-        for (int i = 1; i <= updateInterval && i<= maxIterations && !tocontinue(); i++) {
+        for (int i = 1; i<= maxIterations && !tocontinue(); i++) {
             int xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
             int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
             int constant     = new Double(RAND.nextDouble() * 100).intValue();
+
+            while(xCoefficient == 0 || yCoefficient ==0){
+                 xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
+                 yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
+            }
 
             // this is the real output of the classifier
             output = Arrays.asList(xCoefficient, yCoefficient, constant);

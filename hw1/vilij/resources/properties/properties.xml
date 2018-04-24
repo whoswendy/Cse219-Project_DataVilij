@@ -5,7 +5,7 @@ functionality within the main workspace. -->
 <properties>
     <property_list>
         <!-- HIGH-LEVEL USER INTERFACE PROPERTIES -->
-        <property name="WINDOW_WIDTH" value="1000"/>
+        <property name="WINDOW_WIDTH" value="1100"/>
         <property name="WINDOW_HEIGHT" value="750"/>
         <property name="IS_WINDOW_RESIZABLE" value="false"/>
         <property name="TITLE" value="Visualization Library In Java (Vilij)"/>
@@ -46,7 +46,7 @@ functionality within the main workspace. -->
         <!-- STANDARD LABELS AND TITLES -->
         <property name="CLOSE_LABEL" value="Close"/>
         <property name="SAVE_WORK_TITLE" value="Save"/>
-        <property name="OPEN_LABEL" value="Open"/>
+
     </property_list>
     <property_options_list/>
 </properties>
