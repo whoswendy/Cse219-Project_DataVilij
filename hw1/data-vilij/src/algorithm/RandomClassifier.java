@@ -59,15 +59,11 @@ public class RandomClassifier extends Classifier {
 
     @Override
     public synchronized void run() {
-        for (int i = 1; i <= maxIterations && tocontinue(); i++) {
-            int xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-            int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-            int constant     = new Double(RAND.nextDouble() * 100).intValue();
+        for (int i = 1; i <= maxIterations; i++) {
+            int xCoefficient =  new Long(-1 * Math.round((2 * RAND.nextDouble() - 1) * 10)).intValue();
+            int yCoefficient = 10;
+            int constant     = RAND.nextInt(11);
 
-            while(xCoefficient == 0 || yCoefficient ==0){
-                xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-                yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-            }
             // this is the real output of the classifier
             output = Arrays.asList(xCoefficient, yCoefficient, constant);
             System.out.println("i="+ i + " output: " + output.get(0) + " " + output.get(1) + " " + output.get(2));
@@ -90,34 +86,7 @@ public class RandomClassifier extends Classifier {
 
         }
 
-        for (int i = 1; i<= maxIterations && !tocontinue(); i++) {
-            int xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-            int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-            int constant     = new Double(RAND.nextDouble() * 100).intValue();
 
-            while(xCoefficient == 0 || yCoefficient ==0){
-                 xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-                 yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-            }
-
-            // this is the real output of the classifier
-            output = Arrays.asList(xCoefficient, yCoefficient, constant);
-            System.out.println("i="+ i + " output: " + output.get(0) + " " + output.get(1) + " " + output.get(2));
-            stop = true;
-            guarded();
-
-            // everything below is just for internal viewing of how the output is changing
-            // in the final project, such changes will be dynamically visible in the UI
-            if (i % updateInterval == 0) {
-                System.out.printf("Iteration number %d: ", i); //
-                flush();
-            }
-            if (i > maxIterations * .6 && RAND.nextDouble() < 0.05) {
-                System.out.printf("Iteration number %d: ", i);
-                flush();
-                break;
-            }
-        }
     }
 
     private synchronized void guarded(){

@@ -623,7 +623,7 @@ public final class AppUI extends UITemplate {
             public synchronized void run(){
                 while(true){
                     try{
-                        sleep(2000);
+                        sleep(1500);
                     }catch (InterruptedException e){
                         e.printStackTrace();
                     }
@@ -644,10 +644,8 @@ public final class AppUI extends UITemplate {
                                 paused = true;
                             }
                         }
-
                         if (paused){
                             try{
-                                //scrnshotButton.setDisable(false);
                                 wait();
                             }
                             catch (InterruptedException e){
@@ -657,7 +655,7 @@ public final class AppUI extends UITemplate {
                             a.resume();
                         }
                     }
-                    if(runThread.getState() == State.TERMINATED || clicked == classificationMaximumIterations){
+                    if(runThread.getState() == State.TERMINATED){
                         next.setDisable(true);
                         break;
                     }
