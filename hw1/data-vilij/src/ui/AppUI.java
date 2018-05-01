@@ -29,6 +29,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 
+import settings.AppPropertyTypes;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
@@ -37,6 +38,9 @@ import vilij.templates.UITemplate;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.nio.file.Path;
 import java.util.List;
@@ -85,7 +89,6 @@ public final class AppUI extends UITemplate {
     private HBox                        hBox = new HBox();
     private String                      algorithm;
     private Button                      runButton;
-    private Button                      config = new Button("Config");
     private boolean                     isConfigured;
     private boolean                     classificationContinuousRun;
     private boolean                     clusteringContinuousRun;
@@ -362,122 +365,167 @@ public final class AppUI extends UITemplate {
 
     public void createMenuOfAlgorithms(String type){
         if(vBox2.getChildren().contains(hBox)) vBox2.getChildren().remove(hBox);
+        ArrayList<RadioButton> radioButtons = new ArrayList<>();
+        ArrayList<Button> configs = new ArrayList<>();
         if (type.equals(CLASSIFICATION)) {
             hBox = new HBox();
             hBox.setSpacing(20);
             ToggleGroup toggleGroup = new ToggleGroup();
-            RadioButton classificationBtn1 = new RadioButton(applicationTemplate.manager.getPropertyValue(CLASSIFICATION1.name()));
-            classificationBtn1.setToggleGroup(toggleGroup);
-            config.setDisable(true);
+            ArrayList<String> classificationAls = new ArrayList<>();
+            try {
+                Class aClass = Class.forName("settings.AppPropertyTypes");
+                Field[] fields = aClass.getFields();
+                for(Field f: fields){
+                    if(f.getName().contains("CLASSIFICATION")) {
+                        classificationAls.add(f.getName());
+                        System.out.println(f.getName());
+                    }
+                }
+            }catch (ClassNotFoundException e){
+                e.printStackTrace();
+            }
 
-            classificationBtn1.setOnAction(event -> {
-                classificationBtn1.setSelected(true);
-                config.setDisable(false);
-                algorithm = classificationBtn1.getText();
-            });
+            for(String s: classificationAls){
+                RadioButton classificationBtn = new RadioButton(applicationTemplate.manager.getPropertyValue(s));
+                classificationBtn.setToggleGroup(toggleGroup);
+                radioButtons.add(classificationBtn);
+                Button config = new Button("config");
+                configs.add(config);
+                config.setDisable(true);
 
-            hBox.getChildren().addAll(classificationBtn1, config);
+                classificationBtn.setOnAction(event -> {
+                    classificationBtn.setSelected(true);
+                    config.setDisable(false);
+                    algorithm = classificationBtn.getText();
+                });
+
+            }
         } else {
             hBox = new HBox();
             ToggleGroup toggleGroup = new ToggleGroup();
-            RadioButton clustering1 = new RadioButton("clustering1          ");
-            clustering1.setToggleGroup(toggleGroup);
-            config.setDisable(true);
-
-            clustering1.setOnAction(event -> {
-                clustering1.setSelected(true);
-                config.setDisable(false);
-                algorithm = clustering1.getText();
-            });
-
-            hBox.getChildren().addAll(clustering1, config);
-        }
-        config.setOnAction((ActionEvent event) -> {
-            final Stage dialog = new Stage();
-            dialog.setTitle("Run Configurations");
-            VBox vBoxTemp1 = new VBox();
-            HBox hBoxTemp1 = new HBox();
-            HBox hBoxTemp2 = new HBox();
-            HBox hBoxTemp3 = new HBox();
-
-            ChangeListener<String> forceNumberListener = (observable, oldValue, newValue) -> {
-                if (!newValue.matches("\\d*"))
-                    ((StringProperty) observable).set(oldValue);
-            };
-
-            Label maxIterations = new Label("Max. Iterations");
-            maxIterations.setFont(Font.font(20));
-            TextField maxIt = new TextField();
-
-            maxIt.textProperty().addListener(forceNumberListener);
-            maxIt.setPrefSize(60,40);
-
-            Label updateIntervals = new Label("Update Intervals");
-            updateIntervals.setFont(Font.font(20));
-            TextField upIntervals = new TextField();
-
-            upIntervals.textProperty().addListener(forceNumberListener);
-            upIntervals.setPrefSize(60,40);
-
-            hBoxTemp1.getChildren().addAll(maxIterations,maxIt);
-            hBoxTemp2.getChildren().addAll(updateIntervals,upIntervals);
-            hBoxTemp1.setSpacing(25);
-            hBoxTemp2.setSpacing(25);
-
-            CheckBox continuous = new CheckBox("Continuous Run?");
-            continuous.setFont(Font.font(20));
-
-            TextField numClusters = new TextField(""+clusteringNumberOfClusters);
-
-            if(algorithmType.equals(CLASSIFICATION)){
-                maxIt.setText(""+classificationMaximumIterations);
-                upIntervals.setText(""+classificationIntervals);
-                continuous.setSelected(classificationContinuousRun);
-            }else if(algorithmType.equals(CLUSTERING))
-            {
-                maxIt.setText(""+clusteringnMaximumIterations);
-                upIntervals.setText(""+clusteringIntervals);
-                continuous.setSelected(clusteringContinuousRun);
-                Label clusters = new Label("Clusters");
-                clusters.setFont(Font.font(20));
-                numClusters.textProperty().addListener(forceNumberListener);
-                numClusters.setPrefSize(60,40);
-                hBoxTemp3.getChildren().addAll(clusters,numClusters);
-                hBoxTemp3.setSpacing(25);
-
+            ArrayList<String> clusteringAl = new ArrayList<>();
+            try {
+                Class aClass = Class.forName("settings.AppPropertyTypes");
+                Field[] fields = aClass.getFields();
+                for(Field f: fields){
+                    if(f.getName().contains("CLUSTERING")) {
+                        clusteringAl.add(f.getName());
+                        System.out.println(f.getName());
+                    }
+                }
+            }catch (ClassNotFoundException e){
+                e.printStackTrace();
             }
 
-            Button done = new Button("Done with Configurations");
-            done.setFont(Font.font(15));
-            done.setOnAction(event1 -> {
-                if(algorithmType.equals(CLASSIFICATION)){
-                    classificationMaximumIterations = Integer.parseInt(maxIt.getText());
-                    classificationIntervals = Integer.parseInt(upIntervals.getText());
-                    classificationContinuousRun = continuous.isSelected();
-                }else if(algorithmType.equals(CLUSTERING)){
-                    clusteringnMaximumIterations = Integer.parseInt(maxIt.getText());
-                    clusteringIntervals = Integer.parseInt(upIntervals.getText());
-                    clusteringNumberOfClusters = Integer.parseInt(numClusters.getText());
-                    clusteringContinuousRun = continuous.isSelected();
+            for(String s: clusteringAl){
+                RadioButton clusteringBtn = new RadioButton(applicationTemplate.manager.getPropertyValue(s));
+                radioButtons.add(clusteringBtn);
+                clusteringBtn.setToggleGroup(toggleGroup);
+                Button config = new Button("Config");
+                configs.add(config);
+                config.setDisable(true);
+
+                clusteringBtn.setOnAction(event -> {
+                    clusteringBtn.setSelected(true);
+                    config.setDisable(false);
+                    algorithm = clusteringBtn.getText();
+                });
+
+            }
+        }
+
+        for(int i = 0; i< radioButtons.size(); i++){
+            hBox.getChildren().add(radioButtons.get(i));
+            hBox.getChildren().add(configs.get(i));
+        }
+
+        for(Button config: configs) {
+            config.setOnAction((ActionEvent event) -> {
+                final Stage dialog = new Stage();
+                dialog.setTitle("Run Configurations");
+                VBox vBoxTemp1 = new VBox();
+                HBox hBoxTemp1 = new HBox();
+                HBox hBoxTemp2 = new HBox();
+                HBox hBoxTemp3 = new HBox();
+
+                ChangeListener<String> forceNumberListener = (observable, oldValue, newValue) -> {
+                    if (!newValue.matches("\\d*"))
+                        ((StringProperty) observable).set(oldValue);
+                };
+
+                Label maxIterations = new Label("Max. Iterations");
+                maxIterations.setFont(Font.font(20));
+                TextField maxIt = new TextField();
+
+                maxIt.textProperty().addListener(forceNumberListener);
+                maxIt.setPrefSize(60, 40);
+
+                Label updateIntervals = new Label("Update Intervals");
+                updateIntervals.setFont(Font.font(20));
+                TextField upIntervals = new TextField();
+
+                upIntervals.textProperty().addListener(forceNumberListener);
+                upIntervals.setPrefSize(60, 40);
+
+                hBoxTemp1.getChildren().addAll(maxIterations, maxIt);
+                hBoxTemp2.getChildren().addAll(updateIntervals, upIntervals);
+                hBoxTemp1.setSpacing(25);
+                hBoxTemp2.setSpacing(25);
+
+                CheckBox continuous = new CheckBox("Continuous Run?");
+                continuous.setFont(Font.font(20));
+
+                TextField numClusters = new TextField("" + clusteringNumberOfClusters);
+
+                if (algorithmType.equals(CLASSIFICATION)) {
+                    maxIt.setText("" + classificationMaximumIterations);
+                    upIntervals.setText("" + classificationIntervals);
+                    continuous.setSelected(classificationContinuousRun);
+                } else if (algorithmType.equals(CLUSTERING)) {
+                    maxIt.setText("" + clusteringnMaximumIterations);
+                    upIntervals.setText("" + clusteringIntervals);
+                    continuous.setSelected(clusteringContinuousRun);
+                    Label clusters = new Label("Clusters");
+                    clusters.setFont(Font.font(20));
+                    numClusters.textProperty().addListener(forceNumberListener);
+                    numClusters.setPrefSize(60, 40);
+                    hBoxTemp3.getChildren().addAll(clusters, numClusters);
+                    hBoxTemp3.setSpacing(25);
+
                 }
 
-                isConfigured = true;
-                checkRunButton();
-                dialog.close();
+                Button done = new Button("Done with Configurations");
+                done.setFont(Font.font(15));
+                done.setOnAction(event1 -> {
+                    if (algorithmType.equals(CLASSIFICATION)) {
+                        classificationMaximumIterations = Integer.parseInt(maxIt.getText());
+                        classificationIntervals = Integer.parseInt(upIntervals.getText());
+                        classificationContinuousRun = continuous.isSelected();
+                    } else if (algorithmType.equals(CLUSTERING)) {
+                        clusteringnMaximumIterations = Integer.parseInt(maxIt.getText());
+                        clusteringIntervals = Integer.parseInt(upIntervals.getText());
+                        clusteringNumberOfClusters = Integer.parseInt(numClusters.getText());
+                        clusteringContinuousRun = continuous.isSelected();
+                    }
+
+                    isConfigured = true;
+                    checkRunButton();
+                    dialog.close();
+                });
+
+                if (hBoxTemp3.getChildren().size() > 0) {
+                    vBoxTemp1.getChildren().addAll(hBoxTemp1, hBoxTemp2, hBoxTemp3, continuous, done);
+                } else
+                    vBoxTemp1.getChildren().addAll(hBoxTemp1, hBoxTemp2, continuous, done);
+
+                vBoxTemp1.setSpacing(25);
+
+                Scene dialogScene = new Scene(vBoxTemp1, 300, 300);
+                dialog.setScene(dialogScene);
+                dialog.show();
+
             });
-
-            if(hBoxTemp3.getChildren().size() > 0){
-                vBoxTemp1.getChildren().addAll(hBoxTemp1,hBoxTemp2,hBoxTemp3, continuous, done);
-            }else
-                vBoxTemp1.getChildren().addAll(hBoxTemp1,hBoxTemp2, continuous, done);
-
-            vBoxTemp1.setSpacing(25);
-
-            Scene dialogScene = new Scene(vBoxTemp1, 300, 300);
-            dialog.setScene(dialogScene);
-            dialog.show();
-
-        });
+        }
         vBox2.getChildren().add(hBox);
         addRunButton();
     }
@@ -492,7 +540,7 @@ public final class AppUI extends UITemplate {
         vBox2.getChildren().add(runButton);
 
         runButton.setOnAction(event -> {
-            if(algorithm.equals(applicationTemplate.manager.getPropertyValue(CLASSIFICATION1.name()))){
+            if(algorithmType.equals(CLASSIFICATION)){
                 if(dataLoaded){
                     AppActions appActions = (AppActions)(applicationTemplate.getActionComponent());
                     AppData appData = (AppData)(applicationTemplate.getDataComponent());
@@ -500,12 +548,20 @@ public final class AppUI extends UITemplate {
                     String loadedData = appActions.getFileInput();
                     try{
                         DataSet dataSet = DataSet.fromTSDFile(loadedFile);
-                        RandomClassifier classifier = new RandomClassifier(dataSet,classificationMaximumIterations,
-                                classificationIntervals,classificationContinuousRun);
+                        Classifier classifier = null;
+                        try {
+                            Class c = Class.forName(algorithm);
+                            Constructor[] constructors = c.getDeclaredConstructors();
+                            System.out.println("size = " + constructors.length);
+                            Constructor constructor = constructors[0];
+                            classifier = (Classifier) constructor.newInstance(dataSet,classificationMaximumIterations,
+                                    classificationIntervals,classificationContinuousRun);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
                         appData.loadData(loadedData);
                         if(classificationContinuousRun) {
                             runClassifierAlgorithmContinuous(classifier, dataSet);
-
                         }
                         else {
                             runClassifierAlgorithm(classifier, dataSet);
@@ -528,8 +584,17 @@ public final class AppUI extends UITemplate {
                     Path file = temp.toPath();
                     try{
                         DataSet dataSet = DataSet.fromTSDFile(file);
-                        RandomClassifier classifier = new RandomClassifier(dataSet,classificationMaximumIterations,
-                                classificationIntervals,classificationContinuousRun);
+                        Classifier classifier = null;
+                        try {
+                            Class c = Class.forName(algorithm);
+                            Constructor[] constructors = c.getDeclaredConstructors();
+                            System.out.println("size = " + constructors.length);
+                            Constructor constructor = constructors[0];
+                            classifier = (Classifier) constructor.newInstance(dataSet,classificationMaximumIterations,
+                                    classificationIntervals,classificationContinuousRun);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
                         appData.loadData(textArea.getText());
 
                         if(classificationContinuousRun) {
