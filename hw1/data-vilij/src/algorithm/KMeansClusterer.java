@@ -22,9 +22,10 @@ public class KMeansClusterer extends Clusterer {
     private final int           maxIterations;
     private final int           updateInterval;
     private final AtomicBoolean tocontinue;
+    private boolean stop;
 
 
-    public KMeansClusterer(DataSet dataset, int maxIterations, int updateInterval, int numberOfClusters) {
+    public KMeansClusterer(DataSet dataset, int maxIterations, int updateInterval, int numberOfClusters, boolean cont) {
         super(numberOfClusters);
         this.dataset = dataset;
         this.maxIterations = maxIterations;
@@ -42,12 +43,24 @@ public class KMeansClusterer extends Clusterer {
     public boolean tocontinue() { return tocontinue.get(); }
 
     @Override
-    public void run() {
+    public DataSet getDataset(){
+        return dataset;
+    }
+
+    public List getCentroids(){
+        return centroids;
+    }
+
+    @Override
+    public synchronized void run() {
         initializeCentroids();
         int iteration = 0;
         while (iteration++ < maxIterations & tocontinue.get()) {
             assignLabels();
             recomputeCentroids();
+            stop = true;
+            System.out.println("stopping");
+            guarded();
         }
     }
 
@@ -56,8 +69,8 @@ public class KMeansClusterer extends Clusterer {
         List<String> instanceNames = new ArrayList<>(dataset.getLabels().keySet());
         Random       r             = new Random();
         while (chosen.size() < numberOfClusters) {
-            int i = r.nextInt(instanceNames.size());
-            while (chosen.contains(instanceNames.get(i)))
+            int i = r.nextInt(instanceNames.size()-1);
+            while (!chosen.isEmpty() && chosen.contains(instanceNames.get(i)))
                 ++i;
             chosen.add(instanceNames.get(i));
         }
@@ -105,4 +118,25 @@ public class KMeansClusterer extends Clusterer {
         return Math.sqrt(Math.pow(p.getX() - q.getX(), 2) + Math.pow(p.getY() - q.getY(), 2));
     }
 
+    @Override
+    public boolean getStop() {
+        return stop;
+    }
+
+    @Override
+    public synchronized void resume() {
+        stop = false;
+        notify();
+    }
+
+    @Override
+    public synchronized void guarded() {
+        while(stop){
+            try{
+                wait();
+            }catch (InterruptedException e){
+                stop = false;
+            }
+        }
+    }
 }

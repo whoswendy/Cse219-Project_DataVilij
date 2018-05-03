@@ -28,4 +28,6 @@ public abstract class Classifier implements Algorithm {
 
     public abstract void resume();
 
+    public abstract void guarded();
+
 }

@@ -2,10 +2,7 @@ package ui;
 
 import actions.AppActions;
 
-import algorithm.Algorithm;
-import algorithm.Classifier;
-import algorithm.DataSet;
-import algorithm.RandomClassifier;
+import algorithm.*;
 import dataprocessors.AppData;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
@@ -543,34 +540,9 @@ public final class AppUI extends UITemplate {
             if(algorithmType.equals(CLASSIFICATION)){
                 if(dataLoaded){
                     AppActions appActions = (AppActions)(applicationTemplate.getActionComponent());
-                    AppData appData = (AppData)(applicationTemplate.getDataComponent());
                     Path loadedFile = appActions.getDataFilePath();
                     String loadedData = appActions.getFileInput();
-                    try{
-                        DataSet dataSet = DataSet.fromTSDFile(loadedFile);
-                        Classifier classifier = null;
-                        try {
-                            Class c = Class.forName(algorithm);
-                            Constructor[] constructors = c.getDeclaredConstructors();
-                            System.out.println("size = " + constructors.length);
-                            Constructor constructor = constructors[0];
-                            classifier = (Classifier) constructor.newInstance(dataSet,classificationMaximumIterations,
-                                    classificationIntervals,classificationContinuousRun);
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-                        appData.loadData(loadedData);
-                        if(classificationContinuousRun) {
-                            runClassifierAlgorithmContinuous(classifier, dataSet);
-                        }
-                        else {
-                            runClassifierAlgorithm(classifier, dataSet);
-                        }
-
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
-
+                    runClassification(loadedFile,loadedData);
                 }else{
                     File temp = new File("temp.tsd");
                     try{
@@ -580,40 +552,122 @@ public final class AppUI extends UITemplate {
                     }catch(IOException e){
                         System.out.println("not working");
                     }
-                    AppData appData = (AppData)(applicationTemplate.getDataComponent());
                     Path file = temp.toPath();
-                    try{
-                        DataSet dataSet = DataSet.fromTSDFile(file);
-                        Classifier classifier = null;
-                        try {
-                            Class c = Class.forName(algorithm);
-                            Constructor[] constructors = c.getDeclaredConstructors();
-                            System.out.println("size = " + constructors.length);
-                            Constructor constructor = constructors[0];
-                            classifier = (Classifier) constructor.newInstance(dataSet,classificationMaximumIterations,
-                                    classificationIntervals,classificationContinuousRun);
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-                        appData.loadData(textArea.getText());
-
-                        if(classificationContinuousRun) {
-                            runClassifierAlgorithmContinuous(classifier, dataSet);
-                        }
-                        else {
-                            runClassifierAlgorithm(classifier, dataSet);
-                        }
-
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
+                    runClassification(file,textArea.getText());
                 }
             }
-            else if(algorithm.equals("clustering1")){
+            else if(algorithmType.equals(CLUSTERING)){
+                if(dataLoaded){
+                    AppActions appActions = (AppActions)(applicationTemplate.getActionComponent());
+                    Path loadedFile = appActions.getDataFilePath();
+                    String loadedData = appActions.getFileInput();
+                    runClustering(loadedFile,loadedData);
+                }else{
+                    File temp = new File("temp.tsd");
+                    try{
+                        FileWriter fw = new FileWriter(temp);
+                        fw.write(textArea.getText());
+                        fw.close();
+                    }catch(IOException e){
+                        System.out.println("not working");
+                    }
+                    Path file = temp.toPath();
+                    runClustering(file,textArea.getText());
+                }
 
             }
         });
 
+    }
+
+    private void runClustering(Path file, String data){
+        AppData appData = (AppData)applicationTemplate.getDataComponent();
+        try {
+            DataSet dataSet = DataSet.fromTSDFile(file);
+            Clusterer clusterer = null;
+            try {
+                Class c = Class.forName(algorithm);
+                Constructor[] constructors = c.getDeclaredConstructors();
+                Constructor constructor = constructors[0];
+                clusterer = (Clusterer) constructor.newInstance(dataSet, clusteringnMaximumIterations,
+                        clusteringIntervals, clusteringNumberOfClusters, clusteringContinuousRun);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            appData.loadData(data);
+            runClusteringAlgorithmContinuous(clusterer, dataSet);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    private void runClassification(Path file, String data){
+        AppData appData = (AppData)applicationTemplate.getDataComponent();
+        try{
+            DataSet dataSet = DataSet.fromTSDFile(file);
+            Classifier classifier = null;
+            try {
+                Class c = Class.forName(algorithm);
+                Constructor[] constructors = c.getDeclaredConstructors();
+                Constructor constructor = constructors[0];
+                classifier = (Classifier) constructor.newInstance(dataSet,classificationMaximumIterations,
+                        classificationIntervals,classificationContinuousRun);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            appData.loadData(data);
+            if(classificationContinuousRun) {
+                runClassifierAlgorithmContinuous(classifier, dataSet);
+            }
+            else {
+                runClassifierAlgorithm(classifier, dataSet);
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    private void runClusteringAlgorithmContinuous(Clusterer a, DataSet dataSet){
+        AppData appData = (AppData)(applicationTemplate.getDataComponent());
+        runButton.setDisable(true);
+        scrnshotButton.setDisable(true);
+        if(!dataLoaded)
+            toggleButton.setDisable(true);
+        isRunning = true;
+
+        Thread newThread = new Thread(){
+            public synchronized void run(){
+                a.run();
+            }
+        };
+
+        Thread thread2 = new Thread(){
+            public synchronized void run() {
+                while (true) {
+                    try{
+                        sleep(2000);
+                    }catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
+                    if (a.getStop()) {
+                        DataSet d = a.getDataset();
+                        String data = d.writeToString();
+                        String[] temp = data.split("\n");
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                System.out.println(data);
+                                appData.loadData(data);
+                            }
+                        });
+                        a.resume();
+                    }
+                }
+            }
+        };
+
+        newThread.start();
+        thread2.start();
     }
 
     private void runClassifierAlgorithmContinuous(Classifier a, DataSet dataSet){

@@ -63,7 +63,6 @@ will be lost. Are you sure?"/>
 
         <!--CLASSIFICATION ALGORITHMS-->
         <property name = "CLASSIFICATION1" value="algorithm.RandomClassifier"/>
-        <property name = "CLASSIFICATION2" value="algorithm.RandomClassifier"/>
 
         <!--CLUSTERING ALGORITHMS-->
         <property name =  "CLUSTERING1" value="algorithm.RandomClusterer"/>

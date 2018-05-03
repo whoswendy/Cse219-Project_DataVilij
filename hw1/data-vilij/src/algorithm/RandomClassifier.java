@@ -71,7 +71,6 @@ public class RandomClassifier extends Classifier {
             stop = true;
             guarded();
 
-
             // everything below is just for internal viewing of how the output is changing
             // in the final project, such changes will be dynamically visible in the UI
             if (i % updateInterval == 0) {
@@ -85,11 +84,9 @@ public class RandomClassifier extends Classifier {
             }
 
         }
-
-
     }
 
-    private synchronized void guarded(){
+    public synchronized void guarded(){
         while(stop){
             try{
                 wait();

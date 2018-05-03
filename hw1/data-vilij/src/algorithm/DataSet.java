@@ -2,6 +2,8 @@ package algorithm;
 
 import javafx.geometry.Point2D;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -79,6 +81,16 @@ public class DataSet {
             }
         });
         return dataset;
+    }
+
+    public String writeToString(){
+        String data = "";
+        for(String name: labels.keySet()){
+            data += (name + "\t" + labels.get(name) + "\t" + locations.get(name).getX() + "," + locations.get(name).getY());
+            data += ("\n");
+        }
+        System.out.println(data);
+        return data;
     }
 
     public ArrayList<Point2D> findRangeOfSet(){
