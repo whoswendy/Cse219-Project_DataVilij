@@ -70,7 +70,7 @@ public class KMeansClusterer extends Clusterer {
         Random       r             = new Random();
         while (chosen.size() < numberOfClusters) {
             int i = r.nextInt(instanceNames.size()-1);
-            while (!chosen.isEmpty() && chosen.contains(instanceNames.get(i)))
+            while (i<instanceNames.size() && chosen.contains(instanceNames.get(i)))
                 ++i;
             chosen.add(instanceNames.get(i));
         }

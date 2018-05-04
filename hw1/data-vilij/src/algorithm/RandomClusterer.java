@@ -12,6 +12,7 @@ public class RandomClusterer extends Clusterer{
     private final int           updateInterval;
     private final AtomicBoolean tocontinue;
     private boolean             stop;
+    private int num;
 
     public RandomClusterer(DataSet dataset, int maxIterations, int updateInterval, int numberOfClusters, boolean cont) {
         super(numberOfClusters);
@@ -43,22 +44,53 @@ public class RandomClusterer extends Clusterer{
 
     @Override
     public void run() {
-
+        num = 0;
         ArrayList<String> labelNames = new ArrayList<>();
         Object[] labels =  dataset.getLabels().keySet().toArray();
-        for(int i = 0; i<maxIterations && i < getNumberOfClusters(); i++){
+        for(int i = 1; i<=maxIterations; i++){
             int rand = (int)(Math.random() * getNumberOfClusters());
             //for every iteration the number of points that change = maxIteration/numPoints?
             // OR maxIterations/numInstances?
 
             labelNames.add(rand+"");
 
-            dataset.updateLabel((String) labels[i],rand+"");
-            System.out.println("size = " + dataset.getLabels().size());
-            System.out.println("random");
+//            int size = labels.length;
+//            int k = (int) (maxIterations/getNumberOfClusters());
+//
+//            if(size - k > 0) {
+//                for (int j = 0; j < k; j++) {
+//                    if(num == labels.length) num = (int) (Math.random() * labels.length);                    System.out.println("num = " + num);
+//                    dataset.updateLabel((String) labels[num], rand + "");
+//                    num++;
+//                    size = size - 1;
+//                }
+//            }else{
+//                for (int j = 0; j < (size - k); j++) {
+//                    if(num == labels.length) num = (int) (Math.random() * labels.length);
+//                    dataset.updateLabel((String) labels[num], rand + "");
+//                    num++;
+//                    size = size - 1;
+//                }
+//            }
+
+            if(labels.length > maxIterations){
+                int rand2 = (int)(Math.random() * 3 +1);
+                int k = i;
+                for(int j = 0; j<rand2; j++) {
+                    if (k < labels.length) {
+                        System.out.println("j = " + j + "k = " + k);
+                        dataset.updateLabel((String) labels[k], rand + "");
+                        k++;
+                    }
+                }
+            }else {
+                if (i < labels.length) {
+                    dataset.updateLabel((String) labels[i], rand + "");
+
+                }
+            }
             stop = true;
             guarded();
-
         }
 
     }

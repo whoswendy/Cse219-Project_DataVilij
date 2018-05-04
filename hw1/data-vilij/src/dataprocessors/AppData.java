@@ -16,6 +16,7 @@ import static settings.AppPropertyTypes.*;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Path;
 
 
@@ -172,7 +173,7 @@ public class AppData implements DataComponent {
                 fw.write(input.getText());
                 fw.close();
             }
-            catch (Exception e){
+            catch (IOException e){
             }
         }
     }

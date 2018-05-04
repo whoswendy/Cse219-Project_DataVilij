@@ -595,7 +595,11 @@ public final class AppUI extends UITemplate {
                 e.printStackTrace();
             }
             appData.loadData(data);
-            runClusteringAlgorithmContinuous(clusterer, dataSet);
+            if(clusteringContinuousRun){
+                runClusteringAlgorithmContinuous(clusterer, dataSet);
+            }else{
+                runClusteringAlgorithm(clusterer,dataSet);
+            }
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -627,6 +631,89 @@ public final class AppUI extends UITemplate {
         }
     }
 
+    private void runClusteringAlgorithm(Clusterer a, DataSet dataSet){
+        if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
+        AppData appData = (AppData)(applicationTemplate.getDataComponent());
+        runButton.setDisable(true);
+        if(!dataLoaded)
+            toggleButton.setDisable(true);
+        isRunning = true;
+        scrnshotButton.setDisable(true);
+        next = new Button("Next");
+        next.setDisable(true);
+        vBox2.getChildren().add(next);
+        clicked = 1;
+
+        ArrayList<Point2D> points = dataSet.findRangeOfSet();
+        Thread runThread = new Thread(){
+            public synchronized void run(){
+                a.run();
+            }
+        };
+
+        Thread thread2 = new Thread(){
+            public synchronized void run(){
+                while(true){
+                    try{
+                        sleep(1500);
+                    }catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
+                    if(a.getStop()) {
+                        DataSet d = a.getDataset();
+                        String data = d.writeToString();
+                        Platform.runLater(() -> {
+                            appData.loadData(data);
+                            clicked++;
+                        });
+
+                        if(clicked % clusteringIntervals == 0) {
+                            if (clicked == clusteringnMaximumIterations) {
+                                next.setDisable(true);
+                            } else {
+                                next.setDisable(false);
+                                scrnshotButton.setDisable(false);
+                                paused = true;
+                            }
+                        }
+                        if (paused){
+                            try{
+                                wait();
+                            }
+                            catch (InterruptedException e){
+                                a.resume();
+                            }
+                        }else{
+                            a.resume();
+                        }
+                    }
+                    if(runThread.getState() == State.TERMINATED){
+                        next.setDisable(true);
+                        break;
+                    }
+                }
+                runButton.setDisable(false);
+                scrnshotButton.setDisable(false);
+                isRunning = false;
+                if(!dataLoaded)
+                    toggleButton.setDisable(false);
+            }
+        };
+
+        runThread.start();
+        thread2.start();
+
+        next.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public synchronized void handle(ActionEvent event) {
+                paused = false;
+                next.setDisable(true);
+                thread2.interrupt();
+                scrnshotButton.setDisable(true);
+            }
+        });
+    }
+
     private void runClusteringAlgorithmContinuous(Clusterer a, DataSet dataSet){
         AppData appData = (AppData)(applicationTemplate.getDataComponent());
         runButton.setDisable(true);
@@ -652,16 +739,17 @@ public final class AppUI extends UITemplate {
                     if (a.getStop()) {
                         DataSet d = a.getDataset();
                         String data = d.writeToString();
-                        String[] temp = data.split("\n");
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                System.out.println(data);
-                                appData.loadData(data);
-                            }
-                        });
+                        Platform.runLater(() -> appData.loadData(data));
                         a.resume();
                     }
+                    if(newThread.getState() == State.TERMINATED){
+                        break;
+                    }
+                    runButton.setDisable(false);
+                    scrnshotButton.setDisable(false);
+                    if(!dataLoaded)
+                        toggleButton.setDisable(false);
+                    isRunning = false;
                 }
             }
         };
@@ -756,7 +844,7 @@ public final class AppUI extends UITemplate {
 
                         if(clicked % classificationIntervals == 0) {
                             if (clicked == classificationMaximumIterations) {
-                                next.setDisable(false);
+                                next.setDisable(true);
                             } else {
                                 next.setDisable(false);
                                 scrnshotButton.setDisable(false);
