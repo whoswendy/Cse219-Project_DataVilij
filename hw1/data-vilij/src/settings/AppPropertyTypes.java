@@ -25,6 +25,8 @@ public enum AppPropertyTypes {
     LOAD_ERROR_TITLE,
     EXIT_WHILE_RUNNING_WARNING,
     EXIT_WITHOUT_SAVING,
+    INTEGERS_ONLY_MSG,
+    POS_INTEGERS_ONLY_MSG,
 
     /* application-specific message titles */
     SAVE_UNSAVED_WORK_TITLE,

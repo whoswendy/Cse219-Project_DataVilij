@@ -57,10 +57,9 @@ public class KMeansClusterer extends Clusterer {
         int iteration = 0;
         while (iteration++ < maxIterations & tocontinue.get()) {
             assignLabels();
-            recomputeCentroids();
             stop = true;
-            System.out.println("stopping");
             guarded();
+            recomputeCentroids();
         }
     }
 
@@ -69,9 +68,9 @@ public class KMeansClusterer extends Clusterer {
         List<String> instanceNames = new ArrayList<>(dataset.getLabels().keySet());
         Random       r             = new Random();
         while (chosen.size() < numberOfClusters) {
-            int i = r.nextInt(instanceNames.size()-1);
-            while (i<instanceNames.size() && chosen.contains(instanceNames.get(i)))
-                ++i;
+            int i = r.nextInt(instanceNames.size());
+            while (chosen.contains(instanceNames.get(i)))
+                i = (++i % instanceNames.size());
             chosen.add(instanceNames.get(i));
         }
         centroids = chosen.stream().map(name -> dataset.getLocations().get(name)).collect(Collectors.toList());

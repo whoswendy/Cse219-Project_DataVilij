@@ -19,14 +19,13 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 
 import settings.AppPropertyTypes;
+import vilij.components.Dialog;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
@@ -445,23 +444,23 @@ public final class AppUI extends UITemplate {
                 HBox hBoxTemp2 = new HBox();
                 HBox hBoxTemp3 = new HBox();
 
-                ChangeListener<String> forceNumberListener = (observable, oldValue, newValue) -> {
-                    if (!newValue.matches("\\d*"))
-                        ((StringProperty) observable).set(oldValue);
-                };
+//                ChangeListener<String> forceNumberListener = (observable, oldValue, newValue) -> {
+//                    if (!newValue.matches("\\d*"))
+//                        ((StringProperty) observable).set(oldValue);
+//                };
 
                 Label maxIterations = new Label("Max. Iterations");
                 maxIterations.setFont(Font.font(20));
                 TextField maxIt = new TextField();
 
-                maxIt.textProperty().addListener(forceNumberListener);
+                //maxIt.textProperty().addListener(forceNumberListener);
                 maxIt.setPrefSize(60, 40);
 
                 Label updateIntervals = new Label("Update Intervals");
                 updateIntervals.setFont(Font.font(20));
                 TextField upIntervals = new TextField();
 
-                upIntervals.textProperty().addListener(forceNumberListener);
+                //upIntervals.textProperty().addListener(forceNumberListener);
                 upIntervals.setPrefSize(60, 40);
 
                 hBoxTemp1.getChildren().addAll(maxIterations, maxIt);
@@ -484,7 +483,7 @@ public final class AppUI extends UITemplate {
                     continuous.setSelected(clusteringContinuousRun);
                     Label clusters = new Label("Clusters");
                     clusters.setFont(Font.font(20));
-                    numClusters.textProperty().addListener(forceNumberListener);
+                    //numClusters.textProperty().addListener(forceNumberListener);
                     numClusters.setPrefSize(60, 40);
                     hBoxTemp3.getChildren().addAll(clusters, numClusters);
                     hBoxTemp3.setSpacing(25);
@@ -494,20 +493,14 @@ public final class AppUI extends UITemplate {
                 Button done = new Button("Done with Configurations");
                 done.setFont(Font.font(15));
                 done.setOnAction(event1 -> {
-                    if (algorithmType.equals(CLASSIFICATION)) {
-                        classificationMaximumIterations = Integer.parseInt(maxIt.getText());
-                        classificationIntervals = Integer.parseInt(upIntervals.getText());
-                        classificationContinuousRun = continuous.isSelected();
-                    } else if (algorithmType.equals(CLUSTERING)) {
-                        clusteringnMaximumIterations = Integer.parseInt(maxIt.getText());
-                        clusteringIntervals = Integer.parseInt(upIntervals.getText());
-                        clusteringNumberOfClusters = Integer.parseInt(numClusters.getText());
-                        clusteringContinuousRun = continuous.isSelected();
+                    if(inputsAreValid(maxIt.getText(),upIntervals.getText(),numClusters.getText(),continuous.isSelected())){
+                        isConfigured = true;
+                        checkRunButton();
+                        dialog.close();
+                    }else {
+                        dialog.close();
                     }
 
-                    isConfigured = true;
-                    checkRunButton();
-                    dialog.close();
                 });
 
                 if (hBoxTemp3.getChildren().size() > 0) {
@@ -525,6 +518,43 @@ public final class AppUI extends UITemplate {
         }
         vBox2.getChildren().add(hBox);
         addRunButton();
+    }
+
+    private boolean inputsAreValid(String maxIt, String upIntervals, String numClusters, boolean continuous){
+        try {
+            int maxIterations = Integer.parseInt(maxIt);
+            int intervals = Integer.parseInt(upIntervals);
+            int clusters = Integer.parseInt(numClusters);
+
+            if (algorithmType.equals(CLASSIFICATION)) {
+                if(maxIterations > 0 && intervals >0){
+                    classificationMaximumIterations = maxIterations;
+                    classificationIntervals = intervals;
+                    classificationContinuousRun = continuous;
+                    return true;
+                }else
+                {
+                    applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Input Error",
+                            applicationTemplate.manager.getPropertyValue(POS_INTEGERS_ONLY_MSG.name()));
+                    return false;
+                }
+            } else if (algorithmType.equals(CLUSTERING)) {
+                if(maxIterations > 0 && intervals > 0 && clusters >0){
+                    clusteringnMaximumIterations = maxIterations;
+                    clusteringIntervals = intervals;
+                    clusteringNumberOfClusters = clusters;
+                    clusteringContinuousRun = continuous;
+                    return true;
+                }else{
+                    applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Input Error",
+                            applicationTemplate.manager.getPropertyValue(POS_INTEGERS_ONLY_MSG.name()));
+                    return false;
+                }
+            }
+        }catch (NumberFormatException e){
+            applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Input Error",applicationTemplate.manager.getPropertyValue(INTEGERS_ONLY_MSG.name()));
+        }
+        return false;
     }
 
     private void addRunButton(){
@@ -660,14 +690,13 @@ public final class AppUI extends UITemplate {
                         e.printStackTrace();
                     }
                     if(a.getStop()) {
-                        DataSet d = a.getDataset();
-                        String data = d.writeToString();
-                        Platform.runLater(() -> {
-                            appData.loadData(data);
-                            clicked++;
-                        });
-
+                        clicked++;
                         if(clicked % clusteringIntervals == 0) {
+                            DataSet d = a.getDataset();
+                            String data = d.writeToString();
+                            Platform.runLater(() -> {
+                                appData.loadData(data);
+                            });
                             if (clicked == clusteringnMaximumIterations) {
                                 next.setDisable(true);
                             } else {
@@ -676,6 +705,8 @@ public final class AppUI extends UITemplate {
                                 paused = true;
                             }
                         }
+
+
                         if (paused){
                             try{
                                 wait();
@@ -836,13 +867,13 @@ public final class AppUI extends UITemplate {
                     }
                     if(a.getStop()) {
                         List<Integer> classOutput = a.getOutput();
-                        Platform.runLater(() -> {
-                            List<Integer> output = classOutput;
-                            appData.createLine(output.get(0),output.get(1),output.get(2),points.get(0),points.get(1));
-                            clicked ++;
-                        });
+                        clicked ++;
+                        if(clicked % classificationIntervals == 0 ) {
+                            Platform.runLater(() -> {
+                                List<Integer> output = classOutput;
+                                appData.createLine(output.get(0), output.get(1), output.get(2), points.get(0), points.get(1));
 
-                        if(clicked % classificationIntervals == 0) {
+                            });
                             if (clicked == classificationMaximumIterations) {
                                 next.setDisable(true);
                             } else {
@@ -851,6 +882,8 @@ public final class AppUI extends UITemplate {
                                 paused = true;
                             }
                         }
+
+
                         if (paused){
                             try{
                                 wait();

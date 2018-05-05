@@ -23,6 +23,8 @@ functionality within the main workspace. -->
 will be lost. Are you sure?"/>
         <!-- ERROR MESSAGES -->
         <property name="RESOURCE_SUBDIR_NOT_FOUND" value="Directory not found under resources."/>
+        <property name="INTEGERS_ONLY_MSG" value="Only Integer Values are Valid"/>
+        <property name="POS_INTEGERS_ONLY_MSG" value="Only Positive Integer Values are Valid"/>
 
         <!-- APPLICATION-SPECIFIC MESSAGE TITLES -->
         <property name="SAVE_UNSAVED_WORK_TITLE" value="Save Current Work"/>
