@@ -88,6 +88,7 @@ public class KMeansClusterer extends Clusterer {
                     minDistanceIndex = i;
                 }
             }
+
             dataset.getLabels().put(instanceName, Integer.toString(minDistanceIndex));
         });
     }

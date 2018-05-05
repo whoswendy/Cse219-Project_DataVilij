@@ -706,7 +706,6 @@ public final class AppUI extends UITemplate {
                             }
                         }
 
-
                         if (paused){
                             try{
                                 wait();

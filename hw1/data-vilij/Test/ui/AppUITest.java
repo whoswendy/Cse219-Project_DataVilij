@@ -84,6 +84,9 @@ public class AppUITest {
 
     @Test
     public void testSavingDataToExistingFile() throws FileNotFoundException{
+        /**This test tests for saving the inputted data, in this test case mockTextArea2, to an existing file
+         * rewrites file with whatever is the inputted data
+         * if correct as in the new data in the file is same as what is in mockTextArea2 test will pass**/
         File file = new File("testing.tsd");
 
         try {

@@ -44,49 +44,61 @@ public class RandomClusterer extends Clusterer{
 
     @Override
     public void run() {
-        num = 0;
         ArrayList<String> labelNames = new ArrayList<>();
+        for(int i = 1; i<= getNumberOfClusters(); i++){
+            labelNames.add(i+"");
+        }
         Object[] labels =  dataset.getLabels().keySet().toArray();
+        int group;
+        if(labels.length > labelNames.size()) {
+            group = (int) Math.ceil((double) labels.length / (double) labelNames.size());
+        }else {
+            group = 1;
+        }
+        System.out.println("group = " + group);
+        int k = 0;
+        int label = 0;
+        int point = 0;
         for(int i = 1; i<=maxIterations; i++){
-            int rand = (int)(Math.random() * getNumberOfClusters());
             //for every iteration the number of points that change = maxIteration/numPoints?
             // OR maxIterations/numInstances?
 
-            labelNames.add(rand+"");
-
-//            int size = labels.length;
-//            int k = (int) (maxIterations/getNumberOfClusters());
-//
-//            if(size - k > 0) {
-//                for (int j = 0; j < k; j++) {
-//                    if(num == labels.length) num = (int) (Math.random() * labels.length);                    System.out.println("num = " + num);
-//                    dataset.updateLabel((String) labels[num], rand + "");
-//                    num++;
-//                    size = size - 1;
-//                }
-//            }else{
-//                for (int j = 0; j < (size - k); j++) {
-//                    if(num == labels.length) num = (int) (Math.random() * labels.length);
-//                    dataset.updateLabel((String) labels[num], rand + "");
-//                    num++;
-//                    size = size - 1;
-//                }
-//            }
-
             if(labels.length > maxIterations){
-                int rand2 = (int)(Math.random() * 3 +1);
-                int k = i;
-                for(int j = 0; j<rand2; j++) {
-                    if (k < labels.length) {
-                        System.out.println("j = " + j + "k = " + k);
-                        dataset.updateLabel((String) labels[k], rand + "");
-                        k++;
+                if(k < group) {
+                    for (int j = 0; j < Math.ceil((double) labels.length / (double) maxIterations); j++) {
+                        if (point < labels.length && label < labelNames.size()) {
+                            dataset.updateLabel((String) labels[point], labelNames.get(label));
+                            point++;
+                            k++;
+                        }
+                    }
+                }else{
+                    k = 0;
+                    label ++;
+                    for (int j = 0; j < Math.ceil((double) labels.length / (double) maxIterations); j++) {
+                        if (point < labels.length && label < labelNames.size()) {
+                            dataset.updateLabel((String) labels[point], labelNames.get(label));
+                            point++;
+                            k++;
+                        }
                     }
                 }
-            }else {
-                if (i < labels.length) {
-                    dataset.updateLabel((String) labels[i], rand + "");
-
+            }else{
+                if(k < group){
+                    if (point < labels.length && label < labelNames.size())
+                    {
+                        dataset.updateLabel((String) labels[point], labelNames.get(label));
+                        point++;
+                        k++;
+                    }
+                }else{
+                    k = 0;
+                    label ++;
+                    if (point < labels.length && label < labelNames.size()) {
+                        dataset.updateLabel((String) labels[point], labelNames.get(label));
+                        point++;
+                        k++;
+                    }
                 }
             }
             stop = true;
