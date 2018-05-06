@@ -1,10 +1,12 @@
 package ui;
 
 
+import dataprocessors.TSDProcessor;
 import javafx.geometry.Point2D;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.naming.NamingException;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Stream;
@@ -35,132 +37,6 @@ public class AppUITest {
 
     }
 
-
-    @Test(expected = NullPointerException.class)
-    public void testSaveDataWhenFileDoesNotExists(){
-        /**This test tests for saving data to a file when a file does not exist or when the file is null
-         * which would cause a NullPointerException**/
-        File file = null;
-        try{
-            FileWriter fw = new FileWriter(file);
-            fw.write(mockTextArea);
-            fw.close();
-        }catch (IOException e){
-            System.out.println("File does not exist");
-        }
-    }
-
-    @Test
-    public void testSaveDataToNewFile(){
-        /**This test tests saving data to a new file for the first time
-         * String fileName represents the name of the file that user chooses after choosing a name and location
-         * for the file
-         * The tests passes if the content of the new file created matches the mockTextArea which
-         * represents the input in the text area**/
-        String fileName = "testing1.tsd";
-        try {
-            FileWriter fw = new FileWriter(fileName);
-            fw.write(mockTextArea);
-            fw.close();
-
-            List<String> list = new ArrayList<>();
-            BufferedReader fileReader = new BufferedReader(new FileReader("testing1.tsd"));
-            String s;
-            while((s=fileReader.readLine()) != null){
-                list.add(s);
-            }
-            fileReader.close();
-            String fileInput="";
-            for (String aList : list) {
-                fileInput += aList;
-                fileInput += "\n";
-            }
-
-            assertEquals(mockTextArea,fileInput);
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void testSavingDataToExistingFile() throws FileNotFoundException{
-        /**This test tests for saving the inputted data, in this test case mockTextArea2, to an existing file
-         * rewrites file with whatever is the inputted data
-         * if correct as in the new data in the file is same as what is in mockTextArea2 test will pass**/
-        File file = new File("testing.tsd");
-
-        try {
-            FileWriter fw = new FileWriter(file);
-            fw.write(mockTextArea2);
-            fw.close();
-
-            List<String> list = new ArrayList<>();
-            BufferedReader fileReader = new BufferedReader(new FileReader(file));
-            String s;
-            while((s=fileReader.readLine()) != null){
-                list.add(s);
-            }
-            fileReader.close();
-            String fileInput="";
-            for (String aList : list) {
-                fileInput += aList;
-                fileInput += "\n";
-            }
-
-            assertEquals(mockTextArea2,fileInput);
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
-
-    }
-
-    @Test
-    public void testParsingInputData(){
-        /**This test tests for parsing an TSD string from a TSD file
-         * if pass test it means that the hashmaps dataLabels and dataPoints contains the name, label and point
-         * of the input TSD string*
-         * tsdString is the mock input in this test case, tsdString represents the input from TSD file
-         * that has one input TSD string
-         * Note that the parsing method is taken from TSDProcessor processString(TSDString tsdString)*/
-        tsdString="@a\tlabel1\t1,1\n";
-
-        Stream.of(tsdString.split("\n"))
-                .map(line -> Arrays.asList(line.split("\t")))
-                .forEach(list -> {
-                    String name = list.get(0);
-                    String label = list.get(1);
-                    String[] pair = list.get(2).split(",");
-                    Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
-
-                    dataLabels.put(name, label);
-                    dataPoints.put(name, point);
-                });
-        assertEquals(true,dataLabels.containsKey("@a"));
-        assertEquals(true,dataLabels.containsValue("label1"));
-        assertEquals(true,dataPoints.containsKey("@a"));
-        assertEquals(true,dataPoints.containsValue(new Point2D(1,1)));
-    }
-
-    @Test(expected = ArrayIndexOutOfBoundsException.class)
-    public void testParsingTSDFileEmpty(){
-        /**This test tests for parsing an TSD string when the string is empty
-         * which would return an ArrayIndexOutOfBoundsException*
-         * tsdString is the mock input in this test case, tsdString represents the input from an empty TSD file
-         * Note that the parsing method is taken from TSDProcessor processString(TSDString tsdString)*/
-        tsdString = "";
-        Stream.of(tsdString.split("\n"))
-                .map(line -> Arrays.asList(line.split("\t")))
-                .forEach(list -> {
-                    String name = list.get(0);
-                    String label = list.get(1);
-                    String[] pair = list.get(2).split(",");
-                    Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
-
-                    dataLabels.put(name, label);
-                    dataPoints.put(name, point);
-                });
-    }
 
     @Test
     public void testInputValuesForClassifcationCorrectValues(){
@@ -333,6 +209,168 @@ public class AppUITest {
             testUpIntervals = intervals;
             testClusters = numClusters;
         }
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testSaveDataWhenFileDoesNotExists(){
+        /**This test tests for saving data to a file when a file does not exist or when the file is null
+         * which would cause a NullPointerException**/
+        File file = null;
+        try{
+            FileWriter fw = new FileWriter(file);
+            fw.write(mockTextArea);
+            fw.close();
+        }catch (IOException e){
+            System.out.println("File does not exist");
+        }
+    }
+
+    @Test
+    public void testSaveDataToNewFile(){
+        /**This test tests saving data to a new file for the first time
+         * String fileName represents the name of the file that user chooses after choosing a name and location
+         * for the file
+         * The tests passes if the content of the new file created matches the mockTextArea which
+         * represents the input in the text area**/
+        String fileName = "testing1.tsd";
+        try {
+            FileWriter fw = new FileWriter(fileName);
+            fw.write(mockTextArea);
+            fw.close();
+
+            List<String> list = new ArrayList<>();
+            BufferedReader fileReader = new BufferedReader(new FileReader("testing1.tsd"));
+            String s;
+            while((s=fileReader.readLine()) != null){
+                list.add(s);
+            }
+            fileReader.close();
+            String fileInput="";
+            for (String aList : list) {
+                fileInput += aList;
+                fileInput += "\n";
+            }
+
+            assertEquals(mockTextArea,fileInput);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testSavingDataToExistingFile() throws FileNotFoundException{
+        /**This test tests for saving the inputted data, in this test case mockTextArea2, to an existing file
+         * rewrites file with whatever is the inputted data
+         * if correct as in the new data in the file is same as what is in mockTextArea2 test will pass**/
+        File file = new File("testing.tsd");
+
+        try {
+            FileWriter fw = new FileWriter(file);
+            fw.write(mockTextArea2);
+            fw.close();
+
+            List<String> list = new ArrayList<>();
+            BufferedReader fileReader = new BufferedReader(new FileReader(file));
+            String s;
+            while((s=fileReader.readLine()) != null){
+                list.add(s);
+            }
+            fileReader.close();
+            String fileInput="";
+            for (String aList : list) {
+                fileInput += aList;
+                fileInput += "\n";
+            }
+
+            assertEquals(mockTextArea2,fileInput);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test
+    public void testParsingInputData(){
+        /**This test tests for parsing an TSD string from a TSD file
+         * if pass test it means that the hashmaps dataLabels and dataPoints contains the name, label and point
+         * of the input TSD string*
+         * tsdString is the mock input in this test case, tsdString represents the input from TSD file
+         * that has one input TSD string
+         * Note that the parsing method is taken from TSDProcessor processString(TSDString tsdString)*/
+        tsdString="@a\tlabel1\t1,1\n";
+
+        Stream.of(tsdString.split("\n"))
+                .map(line -> Arrays.asList(line.split("\t")))
+                .forEach(list -> {
+                    if(list.get(0).startsWith("@")) {
+                        String name = list.get(0);
+                        String label = list.get(1);
+                        String[] pair = list.get(2).split(",");
+                        Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
+
+                        dataLabels.put(name, label);
+                        dataPoints.put(name, point);
+                    }
+                });
+        assertEquals(true,dataLabels.containsKey("@a"));
+        assertEquals(true,dataLabels.containsValue("label1"));
+        assertEquals(true,dataPoints.containsKey("@a"));
+        assertEquals(true,dataPoints.containsValue(new Point2D(1,1)));
+    }
+
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    public void testParsingTSDFileEmpty(){
+        /**This test tests for parsing an TSD string when the string is empty
+         * which would return an ArrayIndexOutOfBoundsException*
+         * tsdString is the mock input in this test case, tsdString represents the input from an empty TSD file
+         * Note that the parsing method is taken from TSDProcessor processString(TSDString tsdString)*/
+        tsdString = "";
+        Stream.of(tsdString.split("\n"))
+                .map(line -> Arrays.asList(line.split("\t")))
+                .forEach(list -> {
+                    String name = list.get(0);
+                    String label = list.get(1);
+                    String[] pair = list.get(2).split(",");
+                    Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
+
+                    dataLabels.put(name, label);
+                    dataPoints.put(name, point);
+                });
+    }
+
+    @Test
+    public void testParsingTSDFileStringInCorrectName(){
+        /**This test tests for parsing an TSD string with the wrong naming format from a TSD file
+         * if pass test it means that the the TSD string is not in the correct format thus the
+         * hashmaps dataLabels and dataPoints would not contain the name, label and point
+         * of the input TSD string
+         * tsdString is the mock input in this test case, tsdString represents the input from TSD file
+         * that has one input TSD string
+         * Note that the parsing method is taken from TSDProcessor processString(TSDString tsdString)*/
+        tsdString="a\tlabel1\t1,1\n";
+
+        Stream.of(tsdString.split("\n"))
+                .map(line -> Arrays.asList(line.split("\t")))
+                .forEach(list -> {
+                    try {
+                        if (list.get(0).startsWith("@")) {
+                            String name = list.get(0);
+                            String label = list.get(1);
+                            String[] pair = list.get(2).split(",");
+                            Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
+
+                            dataLabels.put(name, label);
+                            dataPoints.put(name, point);
+                        } else
+                            throw new TSDProcessor.InvalidDataNameException(list.get(0));
+                    }catch (TSDProcessor.InvalidDataNameException e){
+
+                    }
+                });
+        assertEquals(false,dataLabels.containsKey("@a"));
+        assertEquals(false,dataLabels.containsValue("label1"));
+        assertEquals(false,dataPoints.containsKey("@a"));
+        assertEquals(false,dataPoints.containsValue(new Point2D(1,1)));
     }
 
 }
