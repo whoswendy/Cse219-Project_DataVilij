@@ -8,6 +8,7 @@ functionality within the main workspace. -->
         <property name="DATA_RESOURCE_PATH" value="data"/>
         <property name="CSS_PATH" value="css"/>
         <property name="CSS_FILE_PATH" value="data-vilij.css"/>
+        <property name="REFLECTION_PATH" value="settings.AppPropertyTypes"/>
 
         <!-- USER INTERFACE ICON FILES -->
         <property name="SCREENSHOT_ICON" value="screenshot.png"/>
@@ -62,6 +63,7 @@ will be lost. Are you sure?"/>
         <property name="TITLE_FOR_GREATER_THAN_TEN_LINES" value="Showing only 10 lines"/>
         <property name="MESSAGE_PT_1" value="Loaded data consists of "/>
         <property name="MESSAGE_PT_2" value="lines.Showing only the first 10 in the text area."/>
+        <property name="MSG_FOR_NUM_CLUSTERS_GREATER_THAN_INSTANCES" value="Note that number of clusters is greater than number of instances - will cause change in number of clusters"/>
 
         <!--CLASSIFICATION ALGORITHMS-->
         <property name = "CLASSIFICATION1" value="algorithm.RandomClassifier"/>
@@ -69,6 +71,7 @@ will be lost. Are you sure?"/>
         <!--CLUSTERING ALGORITHMS-->
         <property name =  "CLUSTERING1" value="algorithm.RandomClusterer"/>
         <property name = "CLUSTERING2" value="algorithm.KMeansClusterer"/>
+
 
 
     </property_list>

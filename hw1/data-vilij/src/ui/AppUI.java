@@ -248,6 +248,9 @@ public final class AppUI extends UITemplate {
                     textArea.getStyleClass().add("text-area:readonly");
                     if(vBox2.getChildren().contains(hBox)) vBox2.getChildren().remove(hBox);
                     if(vBox2.getChildren().contains(runButton)) vBox2.getChildren().remove(runButton);
+                    if(textArea.getText().split("\n").length <= 1){
+                        applicationTemplate.getDialog(Dialog.DialogType.ERROR).show("Only One Instance","Only One Instance Unable to Run Algorithm");
+                    }
                     getTextInfo();
                     showAlgorithmTypes();
                 }else
@@ -344,6 +347,9 @@ public final class AppUI extends UITemplate {
         if (numLabels < 2) {
             classification.setDisable(true);
         }
+        if(textArea.getText().split("\n").length <= 1){
+            clustering.setDisable(true);
+        }
         classification.setOnAction(event -> {
             if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
             algorithmMenu.setText(classification.getText());
@@ -369,7 +375,7 @@ public final class AppUI extends UITemplate {
             ToggleGroup toggleGroup = new ToggleGroup();
             ArrayList<String> classificationAls = new ArrayList<>();
             try {
-                Class aClass = Class.forName("settings.AppPropertyTypes");
+                Class aClass = Class.forName(applicationTemplate.manager.getPropertyValue(REFLECTION_PATH.name()));
                 Field[] fields = aClass.getFields();
                 for(Field f: fields){
                     if(f.getName().contains("CLASSIFICATION")) {
@@ -401,7 +407,7 @@ public final class AppUI extends UITemplate {
             ToggleGroup toggleGroup = new ToggleGroup();
             ArrayList<String> clusteringAl = new ArrayList<>();
             try {
-                Class aClass = Class.forName("settings.AppPropertyTypes");
+                Class aClass = Class.forName(applicationTemplate.manager.getPropertyValue(REFLECTION_PATH.name()));
                 Field[] fields = aClass.getFields();
                 for(Field f: fields){
                     if(f.getName().contains("CLUSTERING")) {
@@ -497,6 +503,11 @@ public final class AppUI extends UITemplate {
                         isConfigured = true;
                         checkRunButton();
                         dialog.close();
+                        if(clusteringNumberOfClusters > textArea.getText().split("\n").length){
+                            applicationTemplate.getDialog(Dialog.DialogType.ERROR).show(
+                                    "Message",applicationTemplate.manager.getPropertyValue(MSG_FOR_NUM_CLUSTERS_GREATER_THAN_INSTANCES.name())
+                            );
+                        }
                     }else {
                         dialog.close();
                     }
@@ -672,7 +683,7 @@ public final class AppUI extends UITemplate {
         next = new Button("Next");
         next.setDisable(true);
         vBox2.getChildren().add(next);
-        clicked = 1;
+        clicked = 0;
 
         ArrayList<Point2D> points = dataSet.findRangeOfSet();
         Thread runThread = new Thread(){
@@ -746,6 +757,7 @@ public final class AppUI extends UITemplate {
 
     private void runClusteringAlgorithmContinuous(Clusterer a, DataSet dataSet){
         AppData appData = (AppData)(applicationTemplate.getDataComponent());
+        clicked = 0;
         runButton.setDisable(true);
         scrnshotButton.setDisable(true);
         if(!dataLoaded)
@@ -767,20 +779,24 @@ public final class AppUI extends UITemplate {
                         e.printStackTrace();
                     }
                     if (a.getStop()) {
-                        DataSet d = a.getDataset();
-                        String data = d.writeToString();
-                        Platform.runLater(() -> appData.loadData(data));
+                        clicked++;
+                        if (clicked % clusteringIntervals == 0) {
+                            DataSet d = a.getDataset();
+                            String data = d.writeToString();
+                            Platform.runLater(() -> appData.loadData(data));
+                        }
                         a.resume();
                     }
+
                     if(newThread.getState() == State.TERMINATED){
                         break;
                     }
-                    runButton.setDisable(false);
-                    scrnshotButton.setDisable(false);
-                    if(!dataLoaded)
-                        toggleButton.setDisable(false);
-                    isRunning = false;
                 }
+                runButton.setDisable(false);
+                scrnshotButton.setDisable(false);
+                if(!dataLoaded)
+                    toggleButton.setDisable(false);
+                isRunning = false;
             }
         };
 
@@ -791,6 +807,7 @@ public final class AppUI extends UITemplate {
     private void runClassifierAlgorithmContinuous(Classifier a, DataSet dataSet){
         if(vBox2.getChildren().contains(next)) vBox2.getChildren().remove(next);
         AppData appData = (AppData)(applicationTemplate.getDataComponent());
+        clicked = 0;
         runButton.setDisable(true);
         scrnshotButton.setDisable(true);
         if(!dataLoaded)
@@ -814,10 +831,12 @@ public final class AppUI extends UITemplate {
                         e.printStackTrace();
                     }
                     if(a.getStop()) {
-                        List<Integer> output = a.getOutput();
-                        System.out.println(output.size() + "");
-                        Platform.runLater(() -> appData.createLine(output.get(0),output.get(1),output.get(2),points.get(0),points.get(1)));
-
+                        clicked++;
+                        if(clicked % classificationIntervals == 0) {
+                            List<Integer> output = a.getOutput();
+                            System.out.println(output.size() + "");
+                            Platform.runLater(() -> appData.createLine(output.get(0), output.get(1), output.get(2), points.get(0), points.get(1)));
+                        }
                         a.resume();
                     }
                     if(newThread.getState() == State.TERMINATED){
@@ -847,7 +866,7 @@ public final class AppUI extends UITemplate {
         next = new Button("Next");
         next.setDisable(true);
         vBox2.getChildren().add(next);
-        clicked = 1;
+        clicked = 0;
 
         ArrayList<Point2D> points = dataSet.findRangeOfSet();
         Thread runThread = new Thread(){
@@ -881,8 +900,6 @@ public final class AppUI extends UITemplate {
                                 paused = true;
                             }
                         }
-
-
                         if (paused){
                             try{
                                 wait();

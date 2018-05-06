@@ -98,7 +98,6 @@ public final class TSDProcessor {
         }
 
         average = average / dataLabels.size();
-        System.out.println("average = " + average);
     }
 
 

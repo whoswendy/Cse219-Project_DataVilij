@@ -12,7 +12,6 @@ public class RandomClusterer extends Clusterer{
     private final int           updateInterval;
     private final AtomicBoolean tocontinue;
     private boolean             stop;
-    private int num;
 
     public RandomClusterer(DataSet dataset, int maxIterations, int updateInterval, int numberOfClusters, boolean cont) {
         super(numberOfClusters);
@@ -36,6 +35,7 @@ public class RandomClusterer extends Clusterer{
     public int getUpdateInterval() {
         return updateInterval;
     }
+
 
     @Override
     public boolean tocontinue() {
@@ -62,7 +62,7 @@ public class RandomClusterer extends Clusterer{
         for(int i = 1; i<=maxIterations; i++){
             //for every iteration the number of points that change = maxIteration/numPoints?
             // OR maxIterations/numInstances?
-
+            System.out.println("Iteration number " + i);
             if(labels.length > maxIterations){
                 if(k < group) {
                     for (int j = 0; j < Math.ceil((double) labels.length / (double) maxIterations); j++) {

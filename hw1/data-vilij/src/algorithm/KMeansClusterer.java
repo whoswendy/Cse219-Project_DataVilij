@@ -55,7 +55,9 @@ public class KMeansClusterer extends Clusterer {
     public synchronized void run() {
         initializeCentroids();
         int iteration = 0;
+
         while (iteration++ < maxIterations & tocontinue.get()) {
+            System.out.println("Iteration number " + iteration);
             assignLabels();
             stop = true;
             guarded();
@@ -88,7 +90,6 @@ public class KMeansClusterer extends Clusterer {
                     minDistanceIndex = i;
                 }
             }
-
             dataset.getLabels().put(instanceName, Integer.toString(minDistanceIndex));
         });
     }

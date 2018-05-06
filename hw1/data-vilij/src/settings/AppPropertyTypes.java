@@ -13,6 +13,7 @@ public enum AppPropertyTypes {
     DATA_RESOURCE_PATH,
     CSS_PATH,
     CSS_FILE_PATH,
+    REFLECTION_PATH,
 
     /* user interface icon file names */
     SCREENSHOT_ICON,
@@ -59,11 +60,13 @@ public enum AppPropertyTypes {
     TITLE_FOR_GREATER_THAN_TEN_LINES,
     MESSAGE_PT_1,
     MESSAGE_PT_2,
+    MSG_FOR_NUM_CLUSTERS_GREATER_THAN_INSTANCES,
 
     /*CLASSIFICATION ALGORITHMS*/
     CLASSIFICATION1,
 
     /*CLUSTERING ALGORITHMS*/
     CLUSTERING1,
-    CLUSTERING2
+    CLUSTERING2,
+
 }

@@ -25,6 +25,7 @@ public class RandomClassifier extends Classifier {
     private final int maxIterations;
     private final int updateInterval;
     private boolean stop;
+    private int iteration;
 
     // currently, this value does not change after instantiation
     private final AtomicBoolean tocontinue;
@@ -54,7 +55,6 @@ public class RandomClassifier extends Classifier {
         this.tocontinue = new AtomicBoolean(tocontinue);
 
     }
-
 
 
     @Override
