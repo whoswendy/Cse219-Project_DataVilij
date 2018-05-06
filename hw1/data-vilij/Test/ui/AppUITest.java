@@ -367,9 +367,9 @@ public class AppUITest {
 
                     }
                 });
-        assertEquals(false,dataLabels.containsKey("@a"));
+        assertEquals(false,dataLabels.containsKey("a"));
         assertEquals(false,dataLabels.containsValue("label1"));
-        assertEquals(false,dataPoints.containsKey("@a"));
+        assertEquals(false,dataPoints.containsKey("a"));
         assertEquals(false,dataPoints.containsValue(new Point2D(1,1)));
     }
 
